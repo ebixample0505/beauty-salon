@@ -18,6 +18,17 @@ export default function Home() {
         }
         const profile = await liff.getProfile();
         setUserName(profile.displayName);
+
+        // クリック計測
+        const searchParams = new URLSearchParams(window.location.search);
+        const mid = searchParams.get('mid');
+        if (mid) {
+          const { db } = await import('@/lib/firebase');
+          const { doc, updateDoc, increment } = await import('firebase/firestore');
+          await updateDoc(doc(db, 'messages', mid), {
+            clickCount: increment(1),
+          });
+        }
       } catch (e) {
         console.error(e);
         setUserName('ゲスト');
@@ -29,10 +40,14 @@ export default function Home() {
   }, []);
 
   const menus = [
-    { id: 1, name: '検診', time: '30分', price: '¥2,000' },
-    { id: 2, name: 'クリーニング', time: '30分', price: '¥3,000' },
-    { id: 3, name: '虫歯治療', time: '60分', price: '¥5,000' },
-    { id: 4, name: 'ホワイトニング', time: '90分', price: '¥15,000' },
+    { id: 1, name: 'カット', time: '60分', price: '¥4,000' },
+    { id: 2, name: 'カラー', time: '90分', price: '¥8,000' },
+    { id: 3, name: 'パーマ', time: '120分', price: '¥12,000' },
+    { id: 4, name: 'カット + カラー', time: '120分', price: '¥11,000' },
+    { id: 5, name: 'カット + パーマ', time: '150分', price: '¥15,000' },
+    { id: 6, name: 'トリートメント', time: '30分', price: '¥3,000' },
+    { id: 7, name: 'ヘッドスパ', time: '45分', price: '¥5,000' },
+    { id: 8, name: 'まつげエクステ', time: '90分', price: '¥8,000' },
   ];
 
   if (loading) return (
@@ -45,7 +60,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
       <div className="bg-blue-600 text-white p-6">
-        <h1 className="text-xl font-bold">市川デンタルクリニック</h1>
+        <h1 className="text-xl font-bold">test美容室</h1>
         <p className="text-sm mt-1">こんにちは、{userName}さん</p>
       </div>
 
@@ -76,7 +91,7 @@ export default function Home() {
           onClick={() => router.push('/coupon')}
           className="w-full mt-6 bg-yellow-400 text-white rounded-xl p-4 font-bold"
         >
-          🎟️ クーポンを見る
+          クーポンを見る
         </button>
 
         {/* マイページボタン */}
