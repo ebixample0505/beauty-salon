@@ -31,12 +31,10 @@ export default function AdminPage() {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [selectedDate, setSelectedDate] = useState('');
 
-  // カレンダー用
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
 
-  // 週別用
   const getWeekStart = (date: Date) => {
     const d = new Date(date);
     d.setDate(d.getDate() - d.getDay());
@@ -74,10 +72,8 @@ export default function AdminPage() {
     setSelectedBooking(null);
   };
 
-  // 日付文字列を生成
   const toDateString = (date: Date) => date.toISOString().split('T')[0];
 
-  // カレンダー生成
   const getDaysInMonth = (year: number, month: number) => {
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -98,7 +94,6 @@ export default function AdminPage() {
   const getBookingsForDate = (dateStr: string) =>
     bookings.filter(b => b.date === dateStr && b.status === 'confirmed');
 
-  // 月移動
   const prevMonth = () => {
     if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(y => y - 1); }
     else setCurrentMonth(m => m - 1);
@@ -108,7 +103,6 @@ export default function AdminPage() {
     else setCurrentMonth(m => m + 1);
   };
 
-  // 週移動
   const prevWeek = () => {
     const d = new Date(weekStart);
     d.setDate(d.getDate() - 7);
@@ -122,7 +116,6 @@ export default function AdminPage() {
     setSelectedDate('');
   };
 
-  // 週の7日間を生成
   const getWeekDays = () => {
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(weekStart);
@@ -133,7 +126,6 @@ export default function AdminPage() {
 
   const weekDays = getWeekDays();
 
-  // 週の日付範囲ラベル
   const weekLabel = () => {
     const end = new Date(weekStart);
     end.setDate(end.getDate() + 6);
@@ -161,7 +153,6 @@ export default function AdminPage() {
   const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
   const dayNames = ['日','月','火','水','木','金','土'];
 
-  // 予約カードコンポーネント
   const BookingCard = ({ booking }: { booking: Booking }) => {
     const { label, color } = statusLabel(booking);
     return (
@@ -179,10 +170,10 @@ export default function AdminPage() {
           </span>
         </div>
         <div className="grid grid-cols-2 gap-1 text-sm text-gray-600">
-          <p>📅 {booking.date}</p>
-          <p>🕐 {booking.slot}</p>
-          <p>💇 {booking.menu}</p>
-          <p>💴 {booking.price}</p>
+          <p>{booking.date}</p>
+          <p>{booking.slot}</p>
+          <p>{booking.menu}</p>
+          <p>{booking.price}</p>
         </div>
       </div>
     );
@@ -198,20 +189,26 @@ export default function AdminPage() {
     <div className="min-h-screen bg-gray-100">
       {/* ヘッダー */}
       <div className="bg-gray-800 text-white p-4">
-        <h1 className="text-lg font-bold">🏥 管理画面</h1>
-        <p className="text-xs text-gray-400">市川デンタルクリニック</p>
-        <div className="flex gap-2 mt-3">
+        <h1 className="text-lg font-bold">管理画面</h1>
+        <p className="text-xs text-gray-400">美容室予約管理システム</p>
+        <div className="flex gap-2 mt-3 flex-wrap">
           <button
             onClick={() => router.push('/admin/customers')}
             className="bg-gray-700 text-white text-xs px-3 py-1.5 rounded-lg"
           >
-            👥 顧客管理
+            顧客管理
           </button>
           <button
             onClick={() => router.push('/admin/coupons')}
             className="bg-gray-700 text-white text-xs px-3 py-1.5 rounded-lg"
           >
-            🎟️ クーポン管理
+            クーポン管理
+          </button>
+          <button
+            onClick={() => router.push('/admin/messages')}
+            className="bg-gray-700 text-white text-xs px-3 py-1.5 rounded-lg"
+          >
+            メッセージ管理
           </button>
         </div>
       </div>
@@ -228,12 +225,12 @@ export default function AdminPage() {
                 : 'text-gray-500'
             }`}
           >
-            {tab === 'calendar' ? '📅 月' : tab === 'week' ? '📆 週' : '📋 一覧'}
+            {tab === 'calendar' ? '月' : tab === 'week' ? '週' : '一覧'}
           </button>
         ))}
       </div>
 
-      {/* ===== 月カレンダー ===== */}
+      {/* 月カレンダー */}
       {activeTab === 'calendar' && (
         <div>
           <div className="bg-white p-4 flex justify-between items-center shadow-sm">
@@ -299,7 +296,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* ===== 週カレンダー ===== */}
+      {/* 週カレンダー */}
       {activeTab === 'week' && (
         <div>
           <div className="bg-white p-4 flex justify-between items-center shadow-sm">
@@ -308,7 +305,6 @@ export default function AdminPage() {
             <button onClick={nextWeek} className="text-2xl text-gray-600 px-2">›</button>
           </div>
 
-          {/* 週の7日間 */}
           <div className="bg-white grid grid-cols-7 gap-px border-b">
             {weekDays.map((date, i) => {
               const dateStr = toDateString(date);
@@ -323,19 +319,16 @@ export default function AdminPage() {
                     isSelected ? 'bg-blue-50' : 'bg-white'
                   }`}
                 >
-                  {/* 曜日 */}
                   <div className={`text-xs text-center mb-1 ${
                     i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-gray-500'
                   }`}>
                     {dayNames[i]}
                   </div>
-                  {/* 日付 */}
                   <div className={`text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full mx-auto mb-2 ${
                     isToday ? 'bg-blue-600 text-white' : 'text-gray-700'
                   }`}>
                     {date.getDate()}
                   </div>
-                  {/* 予約バッジ */}
                   {dayBookings.length > 0 && (
                     <div className="space-y-1">
                       {dayBookings.slice(0, 3).map(b => (
@@ -358,7 +351,6 @@ export default function AdminPage() {
             })}
           </div>
 
-          {/* 選択日の詳細 */}
           {selectedDate && (
             <div className="p-4">
               <h3 className="font-bold mb-3 text-gray-700">
@@ -375,7 +367,6 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* 選択なしの場合は今週の全予約 */}
           {!selectedDate && (
             <div className="p-4">
               <h3 className="font-bold mb-3 text-gray-700">今週の予約一覧</h3>
@@ -398,7 +389,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* ===== 一覧ビュー ===== */}
+      {/* 一覧ビュー */}
       {activeTab === 'list' && (
         <div>
           <div className="bg-white p-4 shadow-sm">
@@ -431,7 +422,7 @@ export default function AdminPage() {
           <div className="bg-white w-full rounded-t-2xl p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">予約詳細</h2>
-              <button onClick={() => setSelectedBooking(null)} className="text-gray-400 text-xl">✕</button>
+              <button onClick={() => setSelectedBooking(null)} className="text-gray-400 text-xl">X</button>
             </div>
             <div className="space-y-3 mb-6">
               <div className="bg-gray-50 rounded-xl p-4 space-y-2">
