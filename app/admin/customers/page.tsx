@@ -6,6 +6,7 @@ import {
   collection, getDocs,
   doc, deleteDoc
 } from 'firebase/firestore';
+import { requireAdminAuth } from '@/lib/adminAuth';
 
 type Customer = {
   id: string;
@@ -36,6 +37,7 @@ export default function AdminCustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
   useEffect(() => {
+    if (!requireAdminAuth(router)) return;
     fetchAll();
   }, []);
 
@@ -245,32 +247,32 @@ export default function AdminCustomersPage() {
             </div>
 
             <div className="space-y-2">
+              <button
+                onClick={() => { window.location.href = 'tel:' + selectedCustomer.phone; }}
+                className="w-full bg-blue-600 text-white rounded-xl py-3 font-bold text-center block"
+              >
+                電話をかける
+              </button>
+              {selectedCustomer.email && (
                 <button
-                    onClick={() => { window.location.href = 'tel:' + selectedCustomer.phone; }}
-                    className="w-full bg-blue-600 text-white rounded-xl py-3 font-bold text-center block"
+                  onClick={() => { window.location.href = 'mailto:' + selectedCustomer.email; }}
+                  className="w-full bg-green-600 text-white rounded-xl py-3 font-bold text-center block"
                 >
-                    電話をかける
+                  メールを送る
                 </button>
-                {selectedCustomer.email && (
-                    <button
-                    onClick={() => { window.location.href = 'mailto:' + selectedCustomer.email; }}
-                    className="w-full bg-green-600 text-white rounded-xl py-3 font-bold text-center block"
-                    >
-                    メールを送る
-                    </button>
-                )}
-                <button
-                    onClick={() => handleDelete(selectedCustomer.id)}
-                    className="w-full border border-red-400 text-red-400 rounded-xl py-3 font-bold"
-                >
-                    顧客情報を削除
-                </button>
-                <button
-                    onClick={() => setSelectedCustomer(null)}
-                    className="w-full border border-gray-300 text-gray-600 rounded-xl py-3 font-bold"
-                >
-                    閉じる
-                </button>
+              )}
+              <button
+                onClick={() => handleDelete(selectedCustomer.id)}
+                className="w-full border border-red-400 text-red-400 rounded-xl py-3 font-bold"
+              >
+                顧客情報を削除
+              </button>
+              <button
+                onClick={() => setSelectedCustomer(null)}
+                className="w-full border border-gray-300 text-gray-600 rounded-xl py-3 font-bold"
+              >
+                閉じる
+              </button>
             </div>
           </div>
         </div>

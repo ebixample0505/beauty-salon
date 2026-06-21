@@ -6,6 +6,7 @@ import {
   collection, getDocs, addDoc,
   updateDoc, doc, deleteDoc
 } from 'firebase/firestore';
+import { requireAdminAuth } from '@/lib/adminAuth';
 
 type Coupon = {
   id: string;
@@ -37,6 +38,7 @@ export default function AdminCouponsPage() {
   });
 
   useEffect(() => {
+    if (!requireAdminAuth(router)) return;
     fetchCoupons();
   }, []);
 
@@ -111,12 +113,10 @@ export default function AdminCouponsPage() {
   };
 
   const today = new Date().toISOString().split('T')[0];
-
   const isExpired = (coupon: Coupon) => coupon.validUntil < today;
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* ヘッダー */}
       <div className="bg-gray-800 text-white p-4">
         <button
           onClick={() => router.push('/admin')}
@@ -138,7 +138,6 @@ export default function AdminCouponsPage() {
         </div>
       </div>
 
-      {/* 作成・編集フォーム */}
       {showForm && (
         <div className="m-4 bg-white rounded-xl shadow p-4">
           <h2 className="font-bold mb-4 text-lg">
@@ -255,7 +254,6 @@ export default function AdminCouponsPage() {
         </div>
       )}
 
-      {/* クーポン一覧 */}
       <div className="p-4 space-y-3">
         {loading ? (
           <p className="text-center text-gray-500 py-12">読み込み中...</p>
@@ -278,12 +276,10 @@ export default function AdminCouponsPage() {
                 isExpired(coupon) ? 'opacity-60' : ''
               }`}
             >
-              {/* カラーバー */}
               <div className={`h-2 ${
                 !coupon.isActive ? 'bg-gray-300' :
                 isExpired(coupon) ? 'bg-gray-400' : 'bg-yellow-400'
               }`} />
-
               <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1">
@@ -305,12 +301,10 @@ export default function AdminCouponsPage() {
                     </span>
                   </div>
                 </div>
-
                 <div className="text-sm text-gray-600 space-y-1 mb-3">
                   <p>コード: <span className="font-mono font-bold">{coupon.code}</span></p>
                   <p>期間: {coupon.validFrom} 〜 {coupon.validUntil}</p>
                 </div>
-
                 <div className="flex gap-2 border-t pt-3">
                   <button
                     onClick={() => handleEdit(coupon)}

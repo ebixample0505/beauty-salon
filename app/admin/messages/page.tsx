@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import {
-  collection, getDocs, addDoc,
-  query, where
+  collection, getDocs, addDoc
 } from 'firebase/firestore';
+import { requireAdminAuth } from '@/lib/adminAuth';
 
 type Customer = {
   id: string;
@@ -41,9 +41,7 @@ export default function AdminMessagesPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [activeTab, setActiveTab] = useState<'send' | 'history'>('send');
-  const [showForm, setShowForm] = useState(false);
 
-  // フォーム
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [conditionType, setConditionType] = useState<'all' | 'visit_count' | 'last_visit' | 'menu'>('all');
@@ -52,6 +50,7 @@ export default function AdminMessagesPage() {
   const [previewTargets, setPreviewTargets] = useState<Customer[]>([]);
 
   useEffect(() => {
+    if (!requireAdminAuth(router)) return;
     fetchAll();
   }, []);
 
@@ -76,17 +75,10 @@ export default function AdminMessagesPage() {
     }
   };
 
-  // 送信対象を絞り込む
   const getTargetCustomers = (): Customer[] => {
-    const today = new Date().toISOString().split('T')[0];
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-    const threeMonthsAgoStr = threeMonthsAgo.toISOString().split('T')[0];
-
     switch (conditionType) {
       case 'all':
         return customers;
-
       case 'visit_count': {
         const minCount = parseInt(conditionValue) || 1;
         return customers.filter(c => {
@@ -96,7 +88,6 @@ export default function AdminMessagesPage() {
           return count >= minCount;
         });
       }
-
       case 'last_visit': {
         const months = parseInt(conditionValue) || 3;
         const cutoff = new Date();
@@ -109,7 +100,6 @@ export default function AdminMessagesPage() {
           return lastVisit && lastVisit < cutoffStr;
         });
       }
-
       case 'menu': {
         return customers.filter(c =>
           bookings.some(
@@ -119,7 +109,6 @@ export default function AdminMessagesPage() {
           )
         );
       }
-
       default:
         return customers;
     }
@@ -144,7 +133,6 @@ export default function AdminMessagesPage() {
 
     setSending(true);
     try {
-      // メッセージIDを生成してFirestoreに保存
       const messageRef = await addDoc(collection(db, 'messages'), {
         title,
         content,
@@ -155,13 +143,12 @@ export default function AdminMessagesPage() {
         createdAt: new Date(),
       });
 
-      // LINE Messaging APIで送信
       const res = await fetch('/api/send-message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           targets: targets.map(t => t.lineUserId),
-          content: content + `\n\n▼詳細・予約はこちら\nhttps://dental-clinic-indol-pi.vercel.app?mid=${messageRef.id}`,
+          content: content + `\n\n詳細・予約はこちら\nhttps://dental-clinic-indol-pi.vercel.app?mid=${messageRef.id}`,
         }),
       });
 
@@ -170,7 +157,6 @@ export default function AdminMessagesPage() {
         setTitle('');
         setContent('');
         setPreviewTargets([]);
-        setShowForm(false);
         fetchAll();
       } else {
         alert('送信に失敗しました');
@@ -183,7 +169,6 @@ export default function AdminMessagesPage() {
     }
   };
 
-  // メニュー一覧を取得
   const menuList = [...new Set(bookings.map(b => b.menu))];
 
   if (loading) return (
@@ -208,16 +193,9 @@ export default function AdminMessagesPage() {
               登録顧客: {customers.length}名
             </p>
           </div>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-sm"
-          >
-            + 新規送信
-          </button>
         </div>
       </div>
 
-      {/* タブ */}
       <div className="flex bg-white border-b">
         {(['send', 'history'] as const).map(tab => (
           <button
@@ -234,17 +212,13 @@ export default function AdminMessagesPage() {
         ))}
       </div>
 
-      {/* メッセージ作成タブ */}
       {activeTab === 'send' && (
         <div className="p-4 space-y-4">
-          {/* メッセージ内容 */}
           <div className="bg-white rounded-xl shadow p-4">
             <h2 className="font-bold mb-3">メッセージ内容</h2>
             <div className="space-y-3">
               <div>
-                <label className="text-sm font-bold text-gray-700">
-                  タイトル（管理用）
-                </label>
+                <label className="text-sm font-bold text-gray-700">タイトル（管理用）</label>
                 <input
                   type="text"
                   placeholder="例：6月キャンペーン告知"
@@ -254,9 +228,7 @@ export default function AdminMessagesPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-bold text-gray-700">
-                  メッセージ本文
-                </label>
+                <label className="text-sm font-bold text-gray-700">メッセージ本文</label>
                 <textarea
                   placeholder="例：いつもご来店ありがとうございます。今月限定のキャンペーンのご案内です..."
                   value={content}
@@ -271,7 +243,6 @@ export default function AdminMessagesPage() {
             </div>
           </div>
 
-          {/* 送信条件 */}
           <div className="bg-white rounded-xl shadow p-4">
             <h2 className="font-bold mb-3">送信対象の条件</h2>
             <div className="space-y-3">
@@ -294,9 +265,7 @@ export default function AdminMessagesPage() {
 
               {conditionType === 'visit_count' && (
                 <div>
-                  <label className="text-sm font-bold text-gray-700">
-                    来院回数（以上）
-                  </label>
+                  <label className="text-sm font-bold text-gray-700">来院回数（以上）</label>
                   <input
                     type="number"
                     placeholder="例：3"
@@ -304,9 +273,6 @@ export default function AdminMessagesPage() {
                     onChange={e => setConditionValue(e.target.value)}
                     className="w-full border rounded-lg p-2 mt-1"
                   />
-                  <p className="text-xs text-gray-400 mt-1">
-                    入力した回数以上来院した顧客に送信
-                  </p>
                 </div>
               )}
 
@@ -322,9 +288,6 @@ export default function AdminMessagesPage() {
                     onChange={e => setConditionValue(e.target.value)}
                     className="w-full border rounded-lg p-2 mt-1"
                   />
-                  <p className="text-xs text-gray-400 mt-1">
-                    入力した月数以上来院していない顧客に送信
-                  </p>
                 </div>
               )}
 
@@ -341,9 +304,6 @@ export default function AdminMessagesPage() {
                       <option key={menu} value={menu}>{menu}</option>
                     ))}
                   </select>
-                  <p className="text-xs text-gray-400 mt-1">
-                    選択したメニューを予約したことがある顧客に送信
-                  </p>
                 </div>
               )}
 
@@ -356,7 +316,6 @@ export default function AdminMessagesPage() {
             </div>
           </div>
 
-          {/* 対象顧客プレビュー */}
           {previewTargets.length > 0 && (
             <div className="bg-white rounded-xl shadow p-4">
               <h2 className="font-bold mb-3">
@@ -374,7 +333,6 @@ export default function AdminMessagesPage() {
             </div>
           )}
 
-          {/* 送信ボタン */}
           <button
             onClick={handleSend}
             disabled={sending || !title || !content}
@@ -385,7 +343,6 @@ export default function AdminMessagesPage() {
         </div>
       )}
 
-      {/* 送信履歴タブ */}
       {activeTab === 'history' && (
         <div className="p-4 space-y-3">
           {messages.length === 0 ? (

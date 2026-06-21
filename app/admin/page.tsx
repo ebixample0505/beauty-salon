@@ -6,6 +6,7 @@ import {
   collection, getDocs, query,
   orderBy, updateDoc, doc
 } from 'firebase/firestore';
+import { requireAdminAuth, adminLogout } from '@/lib/adminAuth';
 
 type Booking = {
   id: string;
@@ -43,6 +44,7 @@ export default function AdminPage() {
   const [weekStart, setWeekStart] = useState(getWeekStart(today));
 
   useEffect(() => {
+    if (!requireAdminAuth(router)) return;
     fetchBookings();
   }, []);
 
@@ -209,6 +211,12 @@ export default function AdminPage() {
             className="bg-gray-700 text-white text-xs px-3 py-1.5 rounded-lg"
           >
             メッセージ管理
+          </button>
+          <button
+            onClick={() => adminLogout(router)}
+            className="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg"
+          >
+            ログアウト
           </button>
         </div>
       </div>
@@ -422,7 +430,12 @@ export default function AdminPage() {
           <div className="bg-white w-full rounded-t-2xl p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">予約詳細</h2>
-              <button onClick={() => setSelectedBooking(null)} className="text-gray-400 text-xl">X</button>
+              <button
+                onClick={() => setSelectedBooking(null)}
+                className="text-gray-400 text-xl"
+              >
+                X
+              </button>
             </div>
             <div className="space-y-3 mb-6">
               <div className="bg-gray-50 rounded-xl p-4 space-y-2">
