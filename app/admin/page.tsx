@@ -41,7 +41,6 @@ export default function AdminPage() {
   const [weekStart, setWeekStart] = useState(getWeekStart(today));
 
   useEffect(() => {
-    // 認証チェック
     const isAuthenticated = sessionStorage.getItem('admin_authenticated') === 'true';
     if (!isAuthenticated) {
       window.location.href = '/admin/login';
@@ -224,6 +223,12 @@ export default function AdminPage() {
             className="bg-gray-700 text-white text-xs px-3 py-1.5 rounded-lg"
           >
             メニュー管理
+          </button>
+          <button
+            onClick={() => window.location.href = '/admin/richmenu'}
+            className="bg-gray-700 text-white text-xs px-3 py-1.5 rounded-lg"
+          >
+            リッチメニュー
           </button>
           <button
             onClick={handleLogout}
