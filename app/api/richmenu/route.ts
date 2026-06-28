@@ -86,6 +86,8 @@ export async function POST(req: NextRequest) {
     );
 
     console.log('デフォルト設定結果:', setDefaultRes.status);
+    const setDefaultData = await setDefaultRes.text();
+    console.log('デフォルト設定レスポンス:', setDefaultData);
 
     return NextResponse.json({ success: true, richMenuId });
   } catch (error) {
@@ -104,6 +106,7 @@ export async function PUT(req: NextRequest) {
     const richMenuId = formData.get('richMenuId') as string;
 
     console.log('画像アップロード richMenuId:', richMenuId);
+    console.log('画像タイプ:', image?.type);
     console.log('画像サイズ:', image?.size);
 
     if (!image || !richMenuId) {
@@ -111,13 +114,15 @@ export async function PUT(req: NextRequest) {
     }
 
     const imageBuffer = await image.arrayBuffer();
+    const contentType = image.type || 'image/jpeg';
 
+    // 画像アップロード
     const uploadRes = await fetch(
       `https://api-data.line.me/v2/bot/richmenu/${richMenuId}/content`,
       {
         method: 'POST',
         headers: {
-          'Content-Type': 'image/png',
+          'Content-Type': contentType,
           'Authorization': `Bearer ${token}`,
         },
         body: imageBuffer,
@@ -127,10 +132,26 @@ export async function PUT(req: NextRequest) {
     console.log('画像アップロード結果:', uploadRes.status);
 
     if (!uploadRes.ok) {
-      const err = await uploadRes.json();
+      const err = await uploadRes.text();
       console.error('アップロードエラー:', err);
-      return NextResponse.json({ error: err.message }, { status: 400 });
+      return NextResponse.json({ error: err }, { status: 400 });
     }
+
+    // 画像アップロード後にデフォルト設定
+    const setDefaultRes = await fetch(
+      `https://api.line.me/v2/bot/user/all/richmenu/${richMenuId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log('デフォルト再設定結果:', setDefaultRes.status);
+    const setDefaultData = await setDefaultRes.text();
+    console.log('デフォルト再設定レスポンス:', setDefaultData);
 
     return NextResponse.json({ success: true });
   } catch (error) {
