@@ -6,11 +6,15 @@ type MenuItem = {
 };
 
 type TabData = {
-  tabAItems: MenuItem[];
-  tabBItems: MenuItem[];
+  tabAItems: MenuItem[]; // 6個想定（2段×3列）
+  tabBItems: MenuItem[]; // 6個想定（2段×3列）
   tabALabel: string;
   tabBLabel: string;
 };
+
+const TAB_BAR_HEIGHT = 250;
+const ICON_ROW_HEIGHT = 718; // (1686 - 250) / 2
+const COL_WIDTHS = [833, 833, 834]; // 合計2500
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,42 +51,60 @@ export async function POST(req: NextRequest) {
     }
 
     // STEP 3: リッチメニューを作成
-    // switchToAlias: このメニューの切り替えボタンが遷移する先のエイリアスID
+    // 上部タブバー(2エリア) + 下部アイコン(2段×3列=6エリア)
     const createMenu = async (
       items: MenuItem[],
-      label: string,
-      switchToAlias: string
+      menuLabel: string,
+      tabALabelText: string,
+      tabBLabelText: string
     ): Promise<string> => {
-      const areas = items.map((item: MenuItem, i: number) => {
-        // 最後のボタン（index=2）をタブ切り替えボタンにする
-        const isSwitch = i === 2;
-        return {
+      const areas: unknown[] = [];
+
+      // --- 上部タブバー（常に両方のタブへの導線を配置） ---
+      areas.push({
+        bounds: { x: 0, y: 0, width: 1250, height: TAB_BAR_HEIGHT },
+        action: {
+          type: 'richmenuswitch',
+          label: tabALabelText,
+          richMenuAliasId: 'tab-a',
+          data: 'tab=tab-a',
+        },
+      });
+      areas.push({
+        bounds: { x: 1250, y: 0, width: 1250, height: TAB_BAR_HEIGHT },
+        action: {
+          type: 'richmenuswitch',
+          label: tabBLabelText,
+          richMenuAliasId: 'tab-b',
+          data: 'tab=tab-b',
+        },
+      });
+
+      // --- 下部アイコン 2段×3列 ---
+      items.slice(0, 6).forEach((item, i) => {
+        const row = Math.floor(i / 3); // 0 or 1
+        const col = i % 3; // 0,1,2
+        const x = COL_WIDTHS.slice(0, col).reduce((a, b) => a + b, 0);
+        areas.push({
           bounds: {
-            x: i * 833,
-            y: 0,
-            width: i === 2 ? 834 : 833, // 合計2500になるよう最後だけ+1
-            height: 1686,
+            x,
+            y: TAB_BAR_HEIGHT + row * ICON_ROW_HEIGHT,
+            width: COL_WIDTHS[col],
+            height: ICON_ROW_HEIGHT,
           },
-          action: isSwitch
-            ? {
-                type: 'richmenuswitch',
-                label: item.label,
-                richMenuAliasId: switchToAlias,
-                data: `tab=${switchToAlias}`,
-              }
-            : {
-                type: 'uri',
-                label: item.label,
-                uri: item.url,
-              },
-        };
+          action: {
+            type: 'uri',
+            label: item.label,
+            uri: item.url,
+          },
+        });
       });
 
       const body = {
         size: { width: 2500, height: 1686 },
         selected: false,
-        name: label,
-        chatBarText: label,
+        name: menuLabel,
+        chatBarText: menuLabel,
         areas,
       };
 
@@ -92,22 +114,19 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      console.log(`${label} 作成結果 (status ${res.status}):`, JSON.stringify(data));
+      console.log(`${menuLabel} 作成結果 (status ${res.status}):`, JSON.stringify(data));
 
-      // ★修正ポイント: LINE側がエラーを返したら例外を投げて表面化させる
       if (!res.ok || !data.richMenuId) {
         throw new Error(
-          `「${label}」の作成に失敗しました (status ${res.status}): ${JSON.stringify(data)}`
+          `「${menuLabel}」の作成に失敗しました (status ${res.status}): ${JSON.stringify(data)}`
         );
       }
 
       return data.richMenuId as string;
     };
 
-    // タブAのボタン3 → tab-b へ切り替え
-    // タブBのボタン3 → tab-a へ切り替え
-    const tabAId = await createMenu(tabAItems, tabALabel, 'tab-b');
-    const tabBId = await createMenu(tabBItems, tabBLabel, 'tab-a');
+    const tabAId = await createMenu(tabAItems, tabALabel, tabALabel, tabBLabel);
+    const tabBId = await createMenu(tabBItems, tabBLabel, tabALabel, tabBLabel);
 
     console.log('タブA ID:', tabAId);
     console.log('タブB ID:', tabBId);
@@ -115,7 +134,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, tabAId, tabBId });
   } catch (error) {
     console.error('エラー:', error);
-    // ★修正ポイント: フロントに実際のエラーメッセージを返す
     return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
@@ -143,7 +161,6 @@ export async function PUT(req: NextRequest) {
     const imageBuffer = await image.arrayBuffer();
     const contentType = image.type || 'image/jpeg';
 
-    // 画像アップロード
     const uploadRes = await fetch(
       `https://api-data.line.me/v2/bot/richmenu/${richMenuId}/content`,
       {
@@ -162,16 +179,11 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: `画像アップロード失敗 (${uploadRes.status}): ${err}` }, { status: 400 });
     }
 
-    // 両画像アップロード完了後にエイリアスとデフォルト設定
     if (isLastUpload && tabAId && tabBId) {
-      // エイリアスA作成（tab-a → tabAId）
       const aliasARes = await fetch('https://api.line.me/v2/bot/richmenu/alias', {
         method: 'POST',
         headers,
-        body: JSON.stringify({
-          richMenuAliasId: 'tab-a',
-          richMenuId: tabAId,
-        }),
+        body: JSON.stringify({ richMenuAliasId: 'tab-a', richMenuId: tabAId }),
       });
       const aliasAText = await aliasARes.text();
       console.log('エイリアスA作成:', aliasARes.status, aliasAText);
@@ -179,14 +191,10 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ error: `エイリアスA作成失敗: ${aliasAText}` }, { status: 400 });
       }
 
-      // エイリアスB作成（tab-b → tabBId）
       const aliasBRes = await fetch('https://api.line.me/v2/bot/richmenu/alias', {
         method: 'POST',
         headers,
-        body: JSON.stringify({
-          richMenuAliasId: 'tab-b',
-          richMenuId: tabBId,
-        }),
+        body: JSON.stringify({ richMenuAliasId: 'tab-b', richMenuId: tabBId }),
       });
       const aliasBText = await aliasBRes.text();
       console.log('エイリアスB作成:', aliasBRes.status, aliasBText);
@@ -194,7 +202,6 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ error: `エイリアスB作成失敗: ${aliasBText}` }, { status: 400 });
       }
 
-      // タブAをデフォルトに設定
       const setDefaultRes = await fetch(
         `https://api.line.me/v2/bot/user/all/richmenu/${tabAId}`,
         { method: 'POST', headers }

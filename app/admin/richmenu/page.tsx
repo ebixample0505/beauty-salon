@@ -6,19 +6,30 @@ type MenuItem = {
   url: string;
 };
 
+const emptyItem = (): MenuItem => ({ label: '', url: '' });
+
 export default function AdminRichMenuPage() {
   const [tabALabel, setTabALabel] = useState('メインメニュー');
   const [tabBLabel, setTabBLabel] = useState('お得情報');
+
   const [tabAItems, setTabAItems] = useState<MenuItem[]>([
     { label: '予約する', url: 'https://miniapp.line.me/2010454791-miMuAYxd' },
     { label: 'クーポン', url: 'https://miniapp.line.me/2010454791-miMuAYxd/coupon' },
-    { label: 'お得情報へ', url: '' }, // ボタン3はタブ切り替え（urlは使わない）
+    { label: 'お知らせ', url: 'https://miniapp.line.me/2010454791-miMuAYxd/news' },
+    { label: '予約確認', url: 'https://miniapp.line.me/2010454791-miMuAYxd/mypage' },
+    { label: 'スタッフ紹介', url: 'https://miniapp.line.me/2010454791-miMuAYxd/staff' },
+    { label: '電話する', url: 'tel:0000000000' },
   ]);
+
   const [tabBItems, setTabBItems] = useState<MenuItem[]>([
-    { label: 'キャンペーン', url: 'https://miniapp.line.me/2010454791-miMuAYxd' },
-    { label: 'SNS', url: 'https://miniapp.line.me/2010454791-miMuAYxd' },
-    { label: 'メインメニューへ', url: '' }, // ボタン3はタブ切り替え（urlは使わない）
+    emptyItem(),
+    emptyItem(),
+    emptyItem(),
+    emptyItem(),
+    emptyItem(),
+    emptyItem(),
   ]);
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [tabAId, setTabAId] = useState('');
@@ -71,7 +82,6 @@ export default function AdminRichMenuPage() {
       const formData = new FormData();
       formData.append('image', imageFile);
       formData.append('richMenuId', richMenuId);
-      formData.append('isDefault', tab === 'A' ? 'true' : 'false');
       formData.append('tabAId', tabAId);
       formData.append('tabBId', tabBId);
       formData.append('isLastUpload', tab === 'B' ? 'true' : 'false');
@@ -99,7 +109,7 @@ export default function AdminRichMenuPage() {
     }
   };
 
-  const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500'];
+  const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-pink-500', 'bg-yellow-500', 'bg-indigo-500'];
 
   const updateItem = (tab: 'A' | 'B', index: number, field: 'label' | 'url', value: string) => {
     if (tab === 'A') {
@@ -115,45 +125,30 @@ export default function AdminRichMenuPage() {
 
   const renderButtons = (tab: 'A' | 'B') => {
     const items = tab === 'A' ? tabAItems : tabBItems;
-    const switchLabel = tab === 'A' ? tabBLabel : tabALabel;
 
-    return items.map((item, i) => {
-      const isSwitch = i === 2;
-      return (
-        <div key={i} className="border rounded-xl p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <div className={`inline-block ${colors[i]} text-white text-xs font-bold px-2 py-1 rounded-full`}>
-              ボタン{i + 1}
-            </div>
-            {isSwitch && (
-              <div className="inline-block bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                タブ切り替え
-              </div>
-            )}
+    return items.map((item, i) => (
+      <div key={i} className="border rounded-xl p-3">
+        <div className="flex items-center gap-2 mb-2">
+          <div className={`inline-block ${colors[i]} text-white text-xs font-bold px-2 py-1 rounded-full`}>
+            ボタン{i + 1}（{i < 3 ? '上段' : '下段'} {(i % 3) + 1}列目）
           </div>
-          <input
-            type="text"
-            value={item.label}
-            onChange={e => updateItem(tab, i, 'label', e.target.value)}
-            placeholder="ラベル"
-            className="w-full border rounded-lg p-2 mb-2 text-sm"
-          />
-          {isSwitch ? (
-            <div className="w-full border rounded-lg p-2 text-sm bg-orange-50 text-orange-600 font-bold text-center">
-              → 「{switchLabel}」タブへ切り替え（自動設定）
-            </div>
-          ) : (
-            <input
-              type="text"
-              value={item.url}
-              onChange={e => updateItem(tab, i, 'url', e.target.value)}
-              placeholder="リンクURL"
-              className="w-full border rounded-lg p-2 text-sm"
-            />
-          )}
         </div>
-      );
-    });
+        <input
+          type="text"
+          value={item.label}
+          onChange={e => updateItem(tab, i, 'label', e.target.value)}
+          placeholder="ラベル"
+          className="w-full border rounded-lg p-2 mb-2 text-sm"
+        />
+        <input
+          type="text"
+          value={item.url}
+          onChange={e => updateItem(tab, i, 'url', e.target.value)}
+          placeholder="リンクURL"
+          className="w-full border rounded-lg p-2 text-sm"
+        />
+      </div>
+    ));
   };
 
   return (
@@ -166,41 +161,47 @@ export default function AdminRichMenuPage() {
           &lt;- 管理画面に戻る
         </button>
         <h1 className="text-lg font-bold">リッチメニュー管理</h1>
-        <p className="text-xs text-gray-400 mt-1">2タブ・3分割レイアウト（ボタン3でタブ切り替え）</p>
+        <p className="text-xs text-gray-400 mt-1">上部タブバー切り替え・2段×3列レイアウト</p>
       </div>
 
       {/* プレビュー */}
       <div className="m-4 bg-white rounded-xl shadow p-4">
         <h2 className="font-bold mb-3">プレビュー</h2>
-        <div className="flex gap-2 mb-3">
+
+        {/* 上部タブバー（常に両方表示・切り替え専用） */}
+        <div className="grid grid-cols-2 gap-1 mb-1">
           <button
             onClick={() => setActivePreview('A')}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold ${
-              activePreview === 'A' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+            className={`py-3 text-sm font-bold rounded-t-lg ${
+              activePreview === 'A' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-500'
             }`}
           >
             {tabALabel}
           </button>
           <button
             onClick={() => setActivePreview('B')}
-            className={`flex-1 py-2 rounded-lg text-sm font-bold ${
-              activePreview === 'B' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+            className={`py-3 text-sm font-bold rounded-t-lg ${
+              activePreview === 'B' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-500'
             }`}
           >
             {tabBLabel}
           </button>
         </div>
-        <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden border">
+
+        {/* 下部アイコン 2段×3列 */}
+        <div className="grid grid-cols-3 gap-1 rounded-b-xl overflow-hidden border">
           {(activePreview === 'A' ? tabAItems : tabBItems).map((item, i) => (
             <div
               key={i}
-              className={`${i === 2 ? 'bg-orange-400' : colors[i]} text-white p-4 text-center text-sm font-bold min-h-16 flex flex-col items-center justify-center gap-1`}
+              className={`${colors[i]} text-white p-3 text-center text-xs font-bold min-h-16 flex items-center justify-center`}
             >
-              <span>{item.label}</span>
-              {i === 2 && <span className="text-xs opacity-80">⇄ タブ切替</span>}
+              {item.label || `(未設定${i + 1})`}
             </div>
           ))}
         </div>
+        <p className="text-xs text-gray-400 mt-2">
+          ※ 上部タブバーはどちらのタブからも常にタップ可能で、タップすると即座に切り替わります
+        </p>
       </div>
 
       {/* タブA設定 */}
@@ -212,7 +213,7 @@ export default function AdminRichMenuPage() {
             value={tabALabel}
             onChange={e => setTabALabel(e.target.value)}
             className="flex-1 border rounded-lg p-2 text-sm font-bold"
-            placeholder="タブ名"
+            placeholder="タブ名（上部タブバーに表示されます）"
           />
         </div>
         <div className="space-y-3">
@@ -229,7 +230,7 @@ export default function AdminRichMenuPage() {
             value={tabBLabel}
             onChange={e => setTabBLabel(e.target.value)}
             className="flex-1 border rounded-lg p-2 text-sm font-bold"
-            placeholder="タブ名"
+            placeholder="タブ名（上部タブバーに表示されます）"
           />
         </div>
         <div className="space-y-3">
@@ -261,7 +262,6 @@ export default function AdminRichMenuPage() {
       {tabAId && tabBId && (
         <div className="space-y-4 mx-4 mb-8">
 
-          {/* タブA画像 */}
           <div className="bg-white rounded-xl shadow p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">タブA</div>
@@ -291,7 +291,6 @@ export default function AdminRichMenuPage() {
             </button>
           </div>
 
-          {/* タブB画像 */}
           <div className="bg-white rounded-xl shadow p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full">タブB</div>
@@ -321,13 +320,12 @@ export default function AdminRichMenuPage() {
             </button>
           </div>
 
-          {/* 注意事項 */}
           <div className="bg-yellow-50 rounded-xl p-4">
             <h3 className="font-bold text-yellow-800 text-sm mb-2">手順</h3>
             <p className="text-xs text-yellow-700">1. タブAの画像をアップロード</p>
             <p className="text-xs text-yellow-700">2. タブBの画像をアップロード（この時点で反映完了）</p>
             <p className="text-xs text-yellow-700">3. LINEアプリを再起動して確認</p>
-            <p className="text-xs text-orange-600 font-bold mt-2">※ ボタン3をタップするとタブが切り替わります</p>
+            <p className="text-xs text-orange-600 font-bold mt-2">※ 上部の帯部分をタップするとタブが切り替わります</p>
           </div>
         </div>
       )}
