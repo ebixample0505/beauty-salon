@@ -12,12 +12,12 @@ export default function AdminRichMenuPage() {
   const [tabAItems, setTabAItems] = useState<MenuItem[]>([
     { label: '予約する', url: 'https://miniapp.line.me/2010454791-miMuAYxd' },
     { label: 'クーポン', url: 'https://miniapp.line.me/2010454791-miMuAYxd/coupon' },
-    { label: '予約確認', url: 'https://miniapp.line.me/2010454791-miMuAYxd/mypage' },
+    { label: 'お得情報へ', url: '' }, // ボタン3はタブ切り替え（urlは使わない）
   ]);
   const [tabBItems, setTabBItems] = useState<MenuItem[]>([
     { label: 'キャンペーン', url: 'https://miniapp.line.me/2010454791-miMuAYxd' },
     { label: 'SNS', url: 'https://miniapp.line.me/2010454791-miMuAYxd' },
-    { label: '電話する', url: 'tel:00000000000' },
+    { label: 'メインメニューへ', url: '' }, // ボタン3はタブ切り替え（urlは使わない）
   ]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -57,7 +57,7 @@ export default function AdminRichMenuPage() {
       } else {
         setMessage(`エラー: ${data.error}`);
       }
-    } catch (e) {
+    } catch {
       setMessage('エラーが発生しました');
     } finally {
       setLoading(false);
@@ -91,7 +91,7 @@ export default function AdminRichMenuPage() {
         if (tab === 'A') setUploadMessageA(`エラー: ${data.error}`);
         else setUploadMessageB(`エラー: ${data.error}`);
       }
-    } catch (e) {
+    } catch {
       if (tab === 'A') setUploadMessageA('エラーが発生しました');
       else setUploadMessageB('エラーが発生しました');
     } finally {
@@ -99,7 +99,7 @@ export default function AdminRichMenuPage() {
     }
   };
 
-  const colors = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500'];
+  const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500'];
 
   const updateItem = (tab: 'A' | 'B', index: number, field: 'label' | 'url', value: string) => {
     if (tab === 'A') {
@@ -113,6 +113,49 @@ export default function AdminRichMenuPage() {
     }
   };
 
+  const renderButtons = (tab: 'A' | 'B') => {
+    const items = tab === 'A' ? tabAItems : tabBItems;
+    const switchLabel = tab === 'A' ? tabBLabel : tabALabel;
+
+    return items.map((item, i) => {
+      const isSwitch = i === 2;
+      return (
+        <div key={i} className="border rounded-xl p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className={`inline-block ${colors[i]} text-white text-xs font-bold px-2 py-1 rounded-full`}>
+              ボタン{i + 1}
+            </div>
+            {isSwitch && (
+              <div className="inline-block bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                タブ切り替え
+              </div>
+            )}
+          </div>
+          <input
+            type="text"
+            value={item.label}
+            onChange={e => updateItem(tab, i, 'label', e.target.value)}
+            placeholder="ラベル"
+            className="w-full border rounded-lg p-2 mb-2 text-sm"
+          />
+          {isSwitch ? (
+            <div className="w-full border rounded-lg p-2 text-sm bg-orange-50 text-orange-600 font-bold text-center">
+              → 「{switchLabel}」タブへ切り替え（自動設定）
+            </div>
+          ) : (
+            <input
+              type="text"
+              value={item.url}
+              onChange={e => updateItem(tab, i, 'url', e.target.value)}
+              placeholder="リンクURL"
+              className="w-full border rounded-lg p-2 text-sm"
+            />
+          )}
+        </div>
+      );
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="bg-gray-800 text-white p-4">
@@ -123,7 +166,7 @@ export default function AdminRichMenuPage() {
           &lt;- 管理画面に戻る
         </button>
         <h1 className="text-lg font-bold">リッチメニュー管理</h1>
-        <p className="text-xs text-gray-400 mt-1">2タブ・3分割レイアウト</p>
+        <p className="text-xs text-gray-400 mt-1">2タブ・3分割レイアウト（ボタン3でタブ切り替え）</p>
       </div>
 
       {/* プレビュー */}
@@ -151,9 +194,10 @@ export default function AdminRichMenuPage() {
           {(activePreview === 'A' ? tabAItems : tabBItems).map((item, i) => (
             <div
               key={i}
-              className={`${colors[i]} text-white p-4 text-center text-sm font-bold min-h-16 flex items-center justify-center`}
+              className={`${i === 2 ? 'bg-orange-400' : colors[i]} text-white p-4 text-center text-sm font-bold min-h-16 flex flex-col items-center justify-center gap-1`}
             >
-              {item.label}
+              <span>{item.label}</span>
+              {i === 2 && <span className="text-xs opacity-80">⇄ タブ切替</span>}
             </div>
           ))}
         </div>
@@ -172,27 +216,7 @@ export default function AdminRichMenuPage() {
           />
         </div>
         <div className="space-y-3">
-          {tabAItems.map((item, i) => (
-            <div key={i} className="border rounded-xl p-3">
-              <div className={`inline-block ${colors[i]} text-white text-xs font-bold px-2 py-1 rounded-full mb-2`}>
-                ボタン{i + 1}
-              </div>
-              <input
-                type="text"
-                value={item.label}
-                onChange={e => updateItem('A', i, 'label', e.target.value)}
-                placeholder="ラベル"
-                className="w-full border rounded-lg p-2 mb-2 text-sm"
-              />
-              <input
-                type="text"
-                value={item.url}
-                onChange={e => updateItem('A', i, 'url', e.target.value)}
-                placeholder="リンクURL"
-                className="w-full border rounded-lg p-2 text-sm"
-              />
-            </div>
-          ))}
+          {renderButtons('A')}
         </div>
       </div>
 
@@ -209,27 +233,7 @@ export default function AdminRichMenuPage() {
           />
         </div>
         <div className="space-y-3">
-          {tabBItems.map((item, i) => (
-            <div key={i} className="border rounded-xl p-3">
-              <div className={`inline-block ${colors[i]} text-white text-xs font-bold px-2 py-1 rounded-full mb-2`}>
-                ボタン{i + 1}
-              </div>
-              <input
-                type="text"
-                value={item.label}
-                onChange={e => updateItem('B', i, 'label', e.target.value)}
-                placeholder="ラベル"
-                className="w-full border rounded-lg p-2 mb-2 text-sm"
-              />
-              <input
-                type="text"
-                value={item.url}
-                onChange={e => updateItem('B', i, 'url', e.target.value)}
-                placeholder="リンクURL"
-                className="w-full border rounded-lg p-2 text-sm"
-              />
-            </div>
-          ))}
+          {renderButtons('B')}
         </div>
       </div>
 
@@ -323,6 +327,7 @@ export default function AdminRichMenuPage() {
             <p className="text-xs text-yellow-700">1. タブAの画像をアップロード</p>
             <p className="text-xs text-yellow-700">2. タブBの画像をアップロード（この時点で反映完了）</p>
             <p className="text-xs text-yellow-700">3. LINEアプリを再起動して確認</p>
+            <p className="text-xs text-orange-600 font-bold mt-2">※ ボタン3をタップするとタブが切り替わります</p>
           </div>
         </div>
       )}
