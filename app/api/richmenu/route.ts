@@ -19,7 +19,7 @@ const COL_WIDTHS = [833, 833, 834]; // 合計2500
 export async function POST(req: NextRequest) {
   try {
     const { tabAItems, tabBItems, tabALabel, tabBLabel }: TabData = await req.json();
-    const token = process.env.LINE_CHANNEL_ACCESS_TOKEN!;
+    const token = process.env.LINE_CHANNEL_ACCESS_TOKEN || 'NjilBySvWVCa3UMa5T9/PMO7HDPwP9ACKIsQH6LI1OwoX7Z+WQwN1yLN475XRKv4/hIN7v3A2zc2/lQcZitUSK9K8LC2++Ta9II8+76LQQn2UTkr03iASyz9XYLNlfjSjn0BGmypcVqC4/7xErh5mAdB04t89/1O/w1cDnyilFU=';
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -92,11 +92,17 @@ export async function POST(req: NextRequest) {
             width: COL_WIDTHS[col],
             height: ICON_ROW_HEIGHT,
           },
-          action: {
-            type: 'uri',
-            label: item.label,
-            uri: item.url,
-          },
+          action: item.url
+            ? {
+                type: 'uri',
+                label: item.label,
+                uri: item.url,
+              }
+            : {
+                type: 'message',
+                label: item.label,
+                text: `${item.label || 'この機能'}は準備中です。もうしばらくお待ちください。`,
+              },
         });
       });
 
@@ -107,6 +113,8 @@ export async function POST(req: NextRequest) {
         chatBarText: menuLabel,
         areas,
       };
+
+      console.log(`${menuLabel} 送信body:`, JSON.stringify(body, null, 2));
 
       const res = await fetch('https://api.line.me/v2/bot/richmenu', {
         method: 'POST',
@@ -140,7 +148,7 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const token = process.env.LINE_CHANNEL_ACCESS_TOKEN!;
+    const token = process.env.LINE_CHANNEL_ACCESS_TOKEN || 'NjilBySvWVCa3UMa5T9/PMO7HDPwP9ACKIsQH6LI1OwoX7Z+WQwN1yLN475XRKv4/hIN7v3A2zc2/lQcZitUSK9K8LC2++Ta9II8+76LQQn2UTkr03iASyz9XYLNlfjSjn0BGmypcVqC4/7xErh5mAdB04t89/1O/w1cDnyilFU=';
 
     const formData = await req.formData();
     const image = formData.get('image') as File;
