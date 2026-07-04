@@ -1,16 +1,10 @@
 'use client';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { useEffect, Suspense } from 'react';
+import liff from '@line/liff';
 
 const SHOP_NAME = 'test美容室'; // 店舗名（必要に応じて変更してください）
 
-// "60分" のような文字列から分数を取り出す（取れなければ60分扱い）
-const parseDurationMinutes = (timeStr: string): number => {
-  const match = timeStr.match(/(\d+)/);
-  return match ? parseInt(match[1], 10) : 60;
-};
-
-// JSTの日付・時刻からUTCのDateオブジェクトを作る
 const toUtcDate = (date: string, slot: string): Date | null => {
   if (!date || !slot) return null;
   const d = new Date(`${date}T${slot}:00+09:00`);
@@ -18,9 +12,13 @@ const toUtcDate = (date: string, slot: string): Date | null => {
   return d;
 };
 
-// iCal/Googleカレンダー用の日時フォーマット（YYYYMMDDTHHMMSSZ）
 const formatIcsDate = (d: Date): string => {
   return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+};
+
+const parseDurationMinutes = (timeStr: string): number => {
+  const match = timeStr.match(/(\d+)/);
+  return match ? parseInt(match[1], 10) : 60;
 };
 
 function CompleteContent() {
@@ -37,55 +35,51 @@ function CompleteContent() {
   const startDate = toUtcDate(date, slot);
   const durationMin = parseDurationMinutes(time);
   const endDate = startDate ? new Date(startDate.getTime() + durationMin * 60000) : null;
-
   const hasCalendarData = !!(startDate && endDate);
 
-  const title = `【${SHOP_NAME}】${menu}のご予約`;
-  const description = [
-    `メニュー: ${menu}`,
-    staffName && `担当: ${staffName}`,
-    `料金: ${price}`,
-  ].filter(Boolean).join('\\n');
+  useEffect(() => {
+    // LIFFの外部ブラウザ機能を使うためにinitしておく（未初期化でも他ページで済んでいれば無害）
+    liff.init({ liffId: '2010454791-miMuAYxd' }).catch(() => {});
+  }, []);
+
+  const openUrl = (url: string) => {
+    try {
+      if (liff.isInClient()) {
+        // LIFF内蔵ブラウザではなく、端末標準のブラウザ(Safari等)で開く
+        liff.openWindow({ url, external: true });
+      } else {
+        window.open(url, '_blank');
+      }
+    } catch {
+      window.open(url, '_blank');
+    }
+  };
 
   const handleAddToGoogleCalendar = () => {
     if (!startDate || !endDate) return;
+    const title = `【${SHOP_NAME}】${menu}のご予約`;
+    const description = [
+      `メニュー: ${menu}`,
+      staffName && `担当: ${staffName}`,
+      `料金: ${price}`,
+    ].filter(Boolean).join('\n');
+
     const params = new URLSearchParams({
       action: 'TEMPLATE',
       text: title,
       dates: `${formatIcsDate(startDate)}/${formatIcsDate(endDate)}`,
-      details: description.replace(/\\n/g, '\n'),
+      details: description,
       location: SHOP_NAME,
     });
-    window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank');
+    openUrl(`https://calendar.google.com/calendar/render?${params.toString()}`);
   };
 
-  const handleDownloadIcs = () => {
-    if (!startDate || !endDate) return;
-    const icsContent = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//' + SHOP_NAME + '//Reservation//JP',
-      'BEGIN:VEVENT',
-      `UID:${Date.now()}@reservation`,
-      `DTSTAMP:${formatIcsDate(new Date())}`,
-      `DTSTART:${formatIcsDate(startDate)}`,
-      `DTEND:${formatIcsDate(endDate)}`,
-      `SUMMARY:${title}`,
-      `DESCRIPTION:${description}`,
-      `LOCATION:${SHOP_NAME}`,
-      'END:VEVENT',
-      'END:VCALENDAR',
-    ].join('\r\n');
-
-    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'reservation.ics';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const handleAddToIphoneCalendar = () => {
+    const params = new URLSearchParams({
+      menu, time, price, date, slot, staffName,
+    });
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    openUrl(`${origin}/api/ics?${params.toString()}`);
   };
 
   return (
@@ -108,11 +102,14 @@ function CompleteContent() {
             📅 Googleカレンダーに追加
           </button>
           <button
-            onClick={handleDownloadIcs}
+            onClick={handleAddToIphoneCalendar}
             className="w-full border-2 border-gray-400 text-gray-700 rounded-xl p-3 font-bold text-sm bg-white"
           >
-            📱 iPhoneカレンダーに追加（.ics）
+            📱 iPhoneカレンダーに追加
           </button>
+          <p className="text-xs text-gray-400 text-center">
+            ※ タップすると外部ブラウザが開きます
+          </p>
         </div>
       )}
 
