@@ -2,7 +2,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 const DAYS = ['月', '火', '水', '木', '金', '土', '日'];
 
@@ -48,15 +48,19 @@ function BookingContent() {
 
   useEffect(() => {
     const fetchStaff = async () => {
-      const q = query(
-        collection(db, 'staff'),
-        where('isActive', '==', true),
-        orderBy('order', 'asc')
-      );
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }) as Staff);
-      setStaffList(data);
-      setLoadingStaff(false);
+      try {
+        // isActiveのみで絞り込み、orderはクライアント側でソート（複合インデックス不要にするため）
+        const q = query(collection(db, 'staff'), where('isActive', '==', true));
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs
+          .map(d => ({ id: d.id, ...d.data() }) as Staff & { order?: number })
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        setStaffList(data);
+      } catch (error) {
+        console.error('スタッフ取得エラー:', error);
+      } finally {
+        setLoadingStaff(false);
+      }
     };
     fetchStaff();
   }, []);
