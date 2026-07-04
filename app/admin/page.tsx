@@ -5,6 +5,7 @@ import {
   collection, getDocs, query,
   orderBy, updateDoc, doc
 } from 'firebase/firestore';
+import { addPointsForPayment } from '@/lib/customer';
 
 type Booking = {
   id: string;
@@ -19,6 +20,15 @@ type Booking = {
   status: string;
   lineUserId: string;
   createdAt: any;
+  paymentStatus?: string; // 'paid' で会計完了
+  paidAmount?: number;
+  pointsEarned?: number;
+};
+
+// "¥4,000" のような文字列から数値だけ取り出す
+const parsePriceToNumber = (priceStr: string): number => {
+  const digits = priceStr.replace(/[^0-9]/g, '');
+  return digits ? parseInt(digits, 10) : 0;
 };
 
 export default function AdminPage() {
@@ -28,6 +38,11 @@ export default function AdminPage() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'confirmed' | 'cancelled'>('all');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [selectedDate, setSelectedDate] = useState('');
+
+  // 会計完了フォーム用
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [processingPayment, setProcessingPayment] = useState(false);
 
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
@@ -73,6 +88,49 @@ export default function AdminPage() {
     await updateDoc(doc(db, 'bookings', id), { status });
     fetchBookings();
     setSelectedBooking(null);
+  };
+
+  const openPaymentForm = (booking: Booking) => {
+    setPaymentAmount(String(parsePriceToNumber(booking.price)));
+    setShowPaymentForm(true);
+  };
+
+  const handleCompletePayment = async () => {
+    if (!selectedBooking) return;
+    const amount = parseInt(paymentAmount, 10);
+    if (isNaN(amount) || amount <= 0) {
+      alert('正しい金額を入力してください');
+      return;
+    }
+    if (!selectedBooking.lineUserId) {
+      alert('この予約には顧客情報が紐付いていないため、ポイントを付与できません');
+      return;
+    }
+
+    setProcessingPayment(true);
+    try {
+      const earnedPoints = await addPointsForPayment(
+        selectedBooking.lineUserId,
+        amount,
+        selectedBooking.id
+      );
+
+      await updateDoc(doc(db, 'bookings', selectedBooking.id), {
+        paymentStatus: 'paid',
+        paidAmount: amount,
+        pointsEarned: earnedPoints,
+      });
+
+      alert(`会計完了！ ${earnedPoints}ポイントを付与しました`);
+      setShowPaymentForm(false);
+      setSelectedBooking(null);
+      fetchBookings();
+    } catch (e) {
+      console.error(e);
+      alert('会計処理に失敗しました');
+    } finally {
+      setProcessingPayment(false);
+    }
   };
 
   const handleLogout = () => {
@@ -145,6 +203,7 @@ export default function AdminPage() {
 
   const statusLabel = (b: Booking) => {
     if (b.status === 'cancelled') return { label: 'キャンセル', color: 'bg-red-100 text-red-500' };
+    if (b.paymentStatus === 'paid') return { label: '会計済み', color: 'bg-blue-100 text-blue-600' };
     if (b.date < todayStr) return { label: '来院済み', color: 'bg-gray-100 text-gray-500' };
     return { label: '予約済み', color: 'bg-green-100 text-green-600' };
   };
@@ -166,7 +225,7 @@ export default function AdminPage() {
     return (
       <div
         className="bg-white rounded-xl shadow p-4 cursor-pointer"
-        onClick={() => setSelectedBooking(booking)}
+        onClick={() => { setSelectedBooking(booking); setShowPaymentForm(false); }}
       >
         <div className="flex justify-between items-start mb-2">
           <div>
@@ -445,11 +504,11 @@ export default function AdminPage() {
       {/* 詳細モーダル */}
       {selectedBooking && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end z-50">
-          <div className="bg-white w-full rounded-t-2xl p-6">
+          <div className="bg-white w-full rounded-t-2xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">予約詳細</h2>
               <button
-                onClick={() => setSelectedBooking(null)}
+                onClick={() => { setSelectedBooking(null); setShowPaymentForm(false); }}
                 className="text-gray-400 text-xl"
               >
                 X
@@ -471,8 +530,56 @@ export default function AdminPage() {
                 <p><span className="text-gray-500 text-sm">時間：</span><span className="font-bold">{selectedBooking.slot}（{selectedBooking.time}）</span></p>
                 <p><span className="text-gray-500 text-sm">料金：</span><span className="font-bold text-blue-600">{selectedBooking.price}</span></p>
               </div>
+
+              {/* 会計・ポイント情報 */}
+              {selectedBooking.paymentStatus === 'paid' ? (
+                <div className="bg-blue-50 rounded-xl p-4 space-y-1">
+                  <h3 className="font-bold text-blue-700 text-sm">会計済み</h3>
+                  <p><span className="text-gray-500 text-sm">支払金額：</span><span className="font-bold">¥{selectedBooking.paidAmount?.toLocaleString()}</span></p>
+                  <p><span className="text-gray-500 text-sm">付与ポイント：</span><span className="font-bold text-blue-600">{selectedBooking.pointsEarned}pt</span></p>
+                </div>
+              ) : (
+                showPaymentForm ? (
+                  <div className="bg-yellow-50 rounded-xl p-4 space-y-3">
+                    <h3 className="font-bold text-gray-700 text-sm">会計金額を入力</h3>
+                    <input
+                      type="number"
+                      value={paymentAmount}
+                      onChange={e => setPaymentAmount(e.target.value)}
+                      className="w-full border rounded-lg p-3 text-lg"
+                      placeholder="実際の支払金額"
+                    />
+                    <p className="text-xs text-gray-500">
+                      付与予定ポイント：{paymentAmount ? Math.floor(Number(paymentAmount) / 100) : 0}pt（100円ごとに1pt）
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleCompletePayment}
+                        disabled={processingPayment}
+                        className="flex-1 bg-blue-600 text-white rounded-lg py-3 font-bold disabled:opacity-50"
+                      >
+                        {processingPayment ? '処理中...' : '確定してポイント付与'}
+                      </button>
+                      <button
+                        onClick={() => setShowPaymentForm(false)}
+                        className="flex-1 border border-gray-300 text-gray-600 rounded-lg py-3 font-bold"
+                      >
+                        キャンセル
+                      </button>
+                    </div>
+                  </div>
+                ) : null
+              )}
             </div>
             <div className="space-y-2">
+              {selectedBooking.status === 'confirmed' && selectedBooking.paymentStatus !== 'paid' && !showPaymentForm && (
+                <button
+                  onClick={() => openPaymentForm(selectedBooking)}
+                  className="w-full bg-blue-600 text-white rounded-xl py-3 font-bold"
+                >
+                  💰 会計完了（ポイント付与）
+                </button>
+              )}
               {selectedBooking.status === 'confirmed' && (
                 <button
                   onClick={() => handleStatusChange(selectedBooking.id, 'cancelled')}
@@ -490,7 +597,7 @@ export default function AdminPage() {
                 </button>
               )}
               <button
-                onClick={() => setSelectedBooking(null)}
+                onClick={() => { setSelectedBooking(null); setShowPaymentForm(false); }}
                 className="w-full border border-gray-300 text-gray-600 rounded-xl py-3 font-bold"
               >
                 閉じる
