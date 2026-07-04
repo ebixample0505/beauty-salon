@@ -75,7 +75,9 @@ function ConfirmContent() {
         console.log('メッセージ送信エラー:', e);
       }
 
-      router.push('/complete');
+      router.push(
+        `/complete?menu=${encodeURIComponent(menu)}&time=${encodeURIComponent(time)}&price=${encodeURIComponent(price)}&date=${date}&slot=${slot}&staffName=${encodeURIComponent(staffName)}`
+      );
     } catch (e) {
       console.error('保存エラー:', e);
       alert('保存に失敗しました。もう一度お試しください。');
