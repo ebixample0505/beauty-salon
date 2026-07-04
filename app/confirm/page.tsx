@@ -20,6 +20,8 @@ function ConfirmContent() {
   const phone = searchParams.get('phone') || '';
   const email = searchParams.get('email') || '';
   const lineUserIdParam = searchParams.get('lineUserId') || '';
+  const staffId = searchParams.get('staffId') || '';
+  const staffName = searchParams.get('staffName') || 'お任せ';
 
   useEffect(() => {
     const init = async () => {
@@ -55,6 +57,8 @@ function ConfirmContent() {
         slot,
         price,
         time,
+        staffId,
+        staffName,
         status: 'confirmed',
         createdAt: new Date(),
       });
@@ -64,7 +68,7 @@ function ConfirmContent() {
         if (liff.isInClient()) {
           await liff.sendMessages([{
             type: 'text',
-            text: `✅ 予約が確定しました！\n\n👤 お名前: ${name}\n📋 メニュー: ${menu}\n📅 日付: ${date}\n🕐 時間: ${slot}\n💴 料金: ${price}`,
+            text: `✅ 予約が確定しました！\n\n👤 お名前: ${name}\n📋 メニュー: ${menu}\n💇 担当: ${staffName}\n📅 日付: ${date}\n🕐 時間: ${slot}\n💴 料金: ${price}`,
           }]);
         }
       } catch (e) {
@@ -108,6 +112,10 @@ function ConfirmContent() {
             <div className="flex justify-between border-b pb-2">
               <span className="text-gray-500">メニュー</span>
               <span className="font-bold">{menu}</span>
+            </div>
+            <div className="flex justify-between border-b pb-2">
+              <span className="text-gray-500">担当スタッフ</span>
+              <span className="font-bold">{staffName}</span>
             </div>
             <div className="flex justify-between border-b pb-2">
               <span className="text-gray-500">所要時間</span>
