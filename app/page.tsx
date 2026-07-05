@@ -71,7 +71,7 @@ export default function Home() {
           {menus.map((menu) => (
             <button
               key={menu.id}
-              onClick={() => router.push(`/booking?menu=${menu.name}&time=${menu.time}&price=${menu.price}`)}
+              onClick={() => router.push(`/staff?menu=${menu.name}&time=${menu.time}&price=${menu.price}`)}
               className="w-full bg-white rounded-xl p-4 shadow flex justify-between items-center"
             >
               <div className="text-left">

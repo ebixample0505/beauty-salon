@@ -3,6 +3,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import liff from '@line/liff';
 import { getCustomer, saveCustomer } from '@/lib/customer';
+import BookingSteps from '@/components/BookingSteps';
 
 function ProfileContent() {
   const router = useRouter();
@@ -93,6 +94,8 @@ function ProfileContent() {
         <h1 className="text-xl font-bold">お客様情報の入力</h1>
         <p className="text-sm mt-1 text-blue-100">初回のみ入力が必要です</p>
       </div>
+
+      <BookingSteps current={4} />
 
       <div className="p-4 space-y-4">
         <div className="bg-white rounded-xl shadow p-4">

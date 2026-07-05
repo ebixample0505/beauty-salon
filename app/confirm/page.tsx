@@ -5,6 +5,7 @@ import { db } from '@/lib/firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import { getCustomer } from '@/lib/customer';
 import liff from '@line/liff';
+import BookingSteps from '@/components/BookingSteps';
 
 // "¥4,000" のような文字列から数値だけ取り出す
 const parsePriceToNumber = (priceStr: string): number => {
@@ -120,6 +121,8 @@ function ConfirmContent() {
         <button onClick={() => router.back()} className="text-sm mb-2">← 戻る</button>
         <h1 className="text-xl font-bold">予約内容の確認</h1>
       </div>
+
+      <BookingSteps current={5} />
 
       <div className="p-4">
         <div className="bg-white rounded-xl shadow p-6 mb-6">
