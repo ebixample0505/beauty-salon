@@ -5,7 +5,7 @@ import {
   collection, getDocs, query,
   orderBy, updateDoc, doc
 } from 'firebase/firestore';
-import { addPointsForPayment } from '@/lib/customer';
+import { addPointsForPayment, redeemPoints } from '@/lib/customer';
 
 type Booking = {
   id: string;
@@ -23,6 +23,9 @@ type Booking = {
   paymentStatus?: string; // 'paid' で会計完了
   paidAmount?: number;
   pointsEarned?: number;
+  pointsRequested?: number; // お客様が予約時に希望した利用ポイント
+  discountedPrice?: number; // 希望ポイント適用後の見込み金額
+  pointsUsed?: number; // 実際に消費が確定したポイント
 };
 
 // "¥4,000" のような文字列から数値だけ取り出す
@@ -91,7 +94,10 @@ export default function AdminPage() {
   };
 
   const openPaymentForm = (booking: Booking) => {
-    setPaymentAmount(String(parsePriceToNumber(booking.price)));
+    const initialAmount = booking.pointsRequested
+      ? (booking.discountedPrice ?? parsePriceToNumber(booking.price))
+      : parsePriceToNumber(booking.price);
+    setPaymentAmount(String(initialAmount));
     setShowPaymentForm(true);
   };
 
@@ -109,6 +115,12 @@ export default function AdminPage() {
 
     setProcessingPayment(true);
     try {
+      const pointsUsed = selectedBooking.pointsRequested || 0;
+
+      if (pointsUsed > 0) {
+        await redeemPoints(selectedBooking.lineUserId, pointsUsed, selectedBooking.id);
+      }
+
       const earnedPoints = await addPointsForPayment(
         selectedBooking.lineUserId,
         amount,
@@ -119,9 +131,11 @@ export default function AdminPage() {
         paymentStatus: 'paid',
         paidAmount: amount,
         pointsEarned: earnedPoints,
+        pointsUsed,
       });
 
-      alert(`会計完了！ ${earnedPoints}ポイントを付与しました`);
+      const usedMsg = pointsUsed > 0 ? `（${pointsUsed}pt利用）` : '';
+      alert(`会計完了！ ${earnedPoints}ポイントを付与しました${usedMsg}`);
       setShowPaymentForm(false);
       setSelectedBooking(null);
       fetchBookings();
@@ -536,12 +550,20 @@ export default function AdminPage() {
                 <div className="bg-blue-50 rounded-xl p-4 space-y-1">
                   <h3 className="font-bold text-blue-700 text-sm">会計済み</h3>
                   <p><span className="text-gray-500 text-sm">支払金額：</span><span className="font-bold">¥{selectedBooking.paidAmount?.toLocaleString()}</span></p>
+                  {!!selectedBooking.pointsUsed && (
+                    <p><span className="text-gray-500 text-sm">利用ポイント：</span><span className="font-bold text-orange-600">-{selectedBooking.pointsUsed}pt</span></p>
+                  )}
                   <p><span className="text-gray-500 text-sm">付与ポイント：</span><span className="font-bold text-blue-600">{selectedBooking.pointsEarned}pt</span></p>
                 </div>
               ) : (
                 showPaymentForm ? (
                   <div className="bg-yellow-50 rounded-xl p-4 space-y-3">
                     <h3 className="font-bold text-gray-700 text-sm">会計金額を入力</h3>
+                    {!!selectedBooking.pointsRequested && (
+                      <p className="text-xs text-orange-600 font-bold bg-orange-50 rounded-lg p-2">
+                        ⚠ お客様が予約時に {selectedBooking.pointsRequested}pt の利用を希望しています（{selectedBooking.discountedPrice?.toLocaleString()}円の見込み）
+                      </p>
+                    )}
                     <input
                       type="number"
                       value={paymentAmount}

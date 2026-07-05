@@ -100,3 +100,29 @@ export const addPointsForPayment = async (
 
   return earnedPoints;
 };
+
+// ポイントを利用（消費）する
+export const redeemPoints = async (
+  lineUserId: string,
+  pointsToRedeem: number,
+  bookingId?: string
+): Promise<void> => {
+  if (pointsToRedeem <= 0) return;
+
+  const ref = doc(db, 'customers', lineUserId);
+  await updateDoc(ref, {
+    points: increment(-pointsToRedeem),
+    updatedAt: new Date(),
+  });
+
+  try {
+    await addDoc(collection(db, 'customers', lineUserId, 'pointsHistory'), {
+      type: 'redeem',
+      redeemedPoints: pointsToRedeem,
+      bookingId: bookingId || null,
+      createdAt: new Date(),
+    });
+  } catch (e) {
+    console.error('ポイント利用履歴の記録に失敗:', e);
+  }
+};
