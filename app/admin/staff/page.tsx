@@ -24,6 +24,9 @@ type Staff = {
   bio: string;
   specialties: string[];
   career: string;
+  title: string; // 役職（例：ヘアデザイナー）
+  yearsOfExperience: number; // 経験年数
+  nominationFee: number; // 指名料（円）
   schedule: DaySchedule[];
   isActive: boolean;
   order: number;
@@ -42,6 +45,9 @@ const emptyForm = {
   bio: '',
   specialtiesText: '', // カンマ区切りで入力→配列に変換
   career: '',
+  title: '',
+  yearsOfExperience: 0,
+  nominationFee: 0,
   schedule: defaultSchedule(),
   isActive: true,
   order: 0,
@@ -89,6 +95,9 @@ export default function AdminStaffPage() {
       bio: staff.bio,
       specialtiesText: (staff.specialties || []).join(', '),
       career: staff.career,
+      title: staff.title || '',
+      yearsOfExperience: staff.yearsOfExperience || 0,
+      nominationFee: staff.nominationFee || 0,
       schedule: staff.schedule && staff.schedule.length === 7 ? staff.schedule : defaultSchedule(),
       isActive: staff.isActive,
       order: staff.order,
@@ -129,6 +138,9 @@ export default function AdminStaffPage() {
         bio: form.bio,
         specialties,
         career: form.career,
+        title: form.title,
+        yearsOfExperience: Number(form.yearsOfExperience) || 0,
+        nominationFee: Number(form.nominationFee) || 0,
         schedule: form.schedule,
         isActive: form.isActive,
         order: form.order,
@@ -271,6 +283,42 @@ export default function AdminStaffPage() {
                 onChange={e => setForm({ ...form, specialtiesText: e.target.value })}
                 className="w-full border rounded-lg p-2 mt-1"
               />
+            </div>
+
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="text-sm font-bold text-gray-700">役職</label>
+                <input
+                  type="text"
+                  placeholder="例：ヘアデザイナー"
+                  value={form.title}
+                  onChange={e => setForm({ ...form, title: e.target.value })}
+                  className="w-full border rounded-lg p-2 mt-1"
+                />
+              </div>
+              <div className="w-24">
+                <label className="text-sm font-bold text-gray-700">経験年数</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={form.yearsOfExperience}
+                  onChange={e => setForm({ ...form, yearsOfExperience: Number(e.target.value) })}
+                  className="w-full border rounded-lg p-2 mt-1"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-bold text-gray-700">指名料（円）</label>
+              <input
+                type="number"
+                min={0}
+                placeholder="0"
+                value={form.nominationFee}
+                onChange={e => setForm({ ...form, nominationFee: Number(e.target.value) })}
+                className="w-full border rounded-lg p-2 mt-1"
+              />
+              <p className="text-xs text-gray-400 mt-1">お客様がこのスタッフを指名した場合に加算される金額（0円可）</p>
             </div>
 
             <div>

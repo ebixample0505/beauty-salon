@@ -3,6 +3,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
+import liff from '@line/liff';
 import BookingSteps from '@/components/BookingSteps';
 
 type Staff = {
@@ -10,6 +11,23 @@ type Staff = {
   name: string;
   photoUrl: string;
   bio: string;
+  career: string;
+  title: string;
+  yearsOfExperience: number;
+  nominationFee: number;
+};
+
+type BookingRecord = {
+  lineUserId: string;
+  staffId?: string;
+  status: string;
+  createdAt: any;
+};
+
+// "¥4,000" のような文字列から数値だけ取り出す
+const parsePriceToNumber = (priceStr: string): number => {
+  const digits = priceStr.replace(/[^0-9]/g, '');
+  return digits ? parseInt(digits, 10) : 0;
 };
 
 function StaffSelectContent() {
@@ -22,6 +40,8 @@ function StaffSelectContent() {
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedStaffId, setSelectedStaffId] = useState('');
+  const [previousStaffId, setPreviousStaffId] = useState('');
+  const [showFullCareer, setShowFullCareer] = useState(false);
 
   useEffect(() => {
     const fetchStaff = async () => {
@@ -41,11 +61,49 @@ function StaffSelectContent() {
     fetchStaff();
   }, []);
 
+  useEffect(() => {
+    const fetchPreviousStaff = async () => {
+      try {
+        await liff.init({ liffId: '2010454791-miMuAYxd' });
+        if (!liff.isLoggedIn()) return;
+        const profile = await liff.getProfile();
+
+        const q = query(
+          collection(db, 'bookings'),
+          where('lineUserId', '==', profile.userId),
+          where('status', '==', 'confirmed')
+        );
+        const snapshot = await getDocs(q);
+        const records = snapshot.docs.map(d => d.data() as BookingRecord & { createdAt: any });
+        if (records.length === 0) return;
+
+        // createdAtで最新のものを探す（Firestore Timestamp想定）
+        records.sort((a, b) => {
+          const at = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+          const bt = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+          return bt - at;
+        });
+        const latest = records.find(r => r.staffId);
+        if (latest?.staffId) {
+          setPreviousStaffId(latest.staffId);
+          setSelectedStaffId(latest.staffId); // デフォルトで前回担当を選択状態に
+        }
+      } catch (e) {
+        console.log('前回担当の取得に失敗:', e);
+      }
+    };
+    fetchPreviousStaff();
+  }, []);
+
+  const selectedStaff = staffList.find(s => s.id === selectedStaffId) || null;
+  const nominationFee = selectedStaff?.nominationFee || 0;
+  const totalPrice = parsePriceToNumber(price) + nominationFee;
+
   const handleNext = () => {
-    const staff = staffList.find(s => s.id === selectedStaffId);
-    const staffName = staff ? staff.name : 'お任せ';
+    const staffName = selectedStaff ? selectedStaff.name : 'お任せ';
+    const finalPrice = `¥${totalPrice.toLocaleString()}`;
     router.push(
-      `/booking?menu=${menu}&time=${time}&price=${price}&staffId=${selectedStaffId}&staffName=${encodeURIComponent(staffName)}`
+      `/booking?menu=${menu}&time=${time}&price=${encodeURIComponent(finalPrice)}&staffId=${selectedStaffId}&staffName=${encodeURIComponent(staffName)}&nominationFee=${nominationFee}`
     );
   };
 
@@ -60,51 +118,116 @@ function StaffSelectContent() {
       <BookingSteps current={2} />
 
       <div className="p-4">
-        <p className="text-sm text-gray-500 mb-4">
-          担当を指名する場合は選択してください（未選択の場合は「指名なし」で進みます）
-        </p>
-
         {loading ? (
           <p className="text-center text-gray-400 py-12">読み込み中...</p>
         ) : (
-          <div className="grid grid-cols-3 gap-3 mb-8">
-            {/* お任せ */}
-            <button
-              onClick={() => setSelectedStaffId('')}
-              className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 ${
-                selectedStaffId === ''
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 bg-white'
-              }`}
-            >
-              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-                お任せ
-              </div>
-              <span className="text-xs font-bold text-gray-700">指名なし</span>
-            </button>
-
-            {staffList.map(staff => (
+          <>
+            {/* 横スクロールの選択バー */}
+            <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
               <button
-                key={staff.id}
-                onClick={() => setSelectedStaffId(staff.id)}
-                className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 ${
-                  selectedStaffId === staff.id
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-200 bg-white'
+                onClick={() => { setSelectedStaffId(''); setShowFullCareer(false); }}
+                className={`shrink-0 px-4 py-3 rounded-full border-2 font-bold text-sm ${
+                  selectedStaffId === ''
+                    ? 'border-blue-600 bg-blue-50 text-blue-600'
+                    : 'border-gray-200 bg-white text-gray-600'
                 }`}
               >
-                {staff.photoUrl ? (
-                  <img
-                    src={staff.photoUrl}
-                    alt={staff.name}
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-gray-200" />
-                )}
-                <span className="text-xs font-bold text-gray-700">{staff.name}</span>
+                指名なし
               </button>
-            ))}
+              {staffList.map(staff => (
+                <button
+                  key={staff.id}
+                  onClick={() => { setSelectedStaffId(staff.id); setShowFullCareer(false); }}
+                  className={`shrink-0 px-4 py-3 rounded-full border-2 font-bold text-sm flex items-center gap-1 ${
+                    selectedStaffId === staff.id
+                      ? 'border-blue-600 bg-blue-50 text-blue-600'
+                      : 'border-gray-200 bg-white text-gray-600'
+                  }`}
+                >
+                  {previousStaffId === staff.id && (
+                    <span className="text-[10px] bg-pink-100 text-pink-600 px-1.5 py-0.5 rounded-full">
+                      ✓前回
+                    </span>
+                  )}
+                  {staff.name}
+                </button>
+              ))}
+            </div>
+
+            {/* 詳細パネル */}
+            {selectedStaff ? (
+              <div className="bg-white rounded-xl shadow p-4 mb-8">
+                <div className="flex gap-4">
+                  {selectedStaff.photoUrl ? (
+                    <img
+                      src={selectedStaff.photoUrl}
+                      alt={selectedStaff.name}
+                      className="w-20 h-20 rounded-full object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-gray-200 shrink-0" />
+                  )}
+                  <div className="flex-1">
+                    {previousStaffId === selectedStaff.id && (
+                      <span className="inline-block text-xs bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full font-bold mb-1">
+                        前回担当
+                      </span>
+                    )}
+                    <h2 className="font-bold text-lg">{selectedStaff.name}</h2>
+                    <p className="text-sm text-gray-500">
+                      指名料：
+                      <span className={`font-bold ${nominationFee > 0 ? 'text-red-500' : 'text-gray-600'}`}>
+                        {nominationFee > 0 ? `¥${nominationFee.toLocaleString()}` : '¥0'}
+                      </span>
+                    </p>
+                    {(selectedStaff.title || selectedStaff.yearsOfExperience > 0) && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        {selectedStaff.title}
+                        {selectedStaff.yearsOfExperience > 0 && `（歴${selectedStaff.yearsOfExperience}年）`}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {selectedStaff.bio && (
+                  <p className="text-sm text-gray-600 mt-3">{selectedStaff.bio}</p>
+                )}
+
+                {selectedStaff.career && (
+                  <div className="mt-2">
+                    {showFullCareer ? (
+                      <>
+                        <p className="text-sm text-gray-500 whitespace-pre-wrap">{selectedStaff.career}</p>
+                        <button
+                          onClick={() => setShowFullCareer(false)}
+                          className="text-xs text-blue-600 font-bold mt-1"
+                        >
+                          閉じる
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => setShowFullCareer(true)}
+                        className="text-xs text-blue-600 font-bold underline"
+                      >
+                        詳細を見る
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl shadow p-4 mb-8 text-sm text-gray-500 text-center">
+                空いているスタッフの中からおまかせで担当します
+              </div>
+            )}
+          </>
+        )}
+
+        {nominationFee > 0 && (
+          <div className="bg-yellow-50 rounded-xl p-3 mb-4 text-sm text-center">
+            メニュー料金 {price} ＋ 指名料 ¥{nominationFee.toLocaleString()} ＝
+            <span className="font-bold text-orange-600"> ¥{totalPrice.toLocaleString()}</span>
           </div>
         )}
 

@@ -32,6 +32,7 @@ function ConfirmContent() {
   const lineUserIdParam = searchParams.get('lineUserId') || '';
   const staffId = searchParams.get('staffId') || '';
   const staffName = searchParams.get('staffName') || 'お任せ';
+  const nominationFee = parseInt(searchParams.get('nominationFee') || '0', 10);
 
   const priceNum = parsePriceToNumber(price);
   const maxUsablePoints = Math.min(pointsBalance, priceNum);
@@ -150,6 +151,12 @@ function ConfirmContent() {
               <span className="text-gray-500">担当スタッフ</span>
               <span className="font-bold">{staffName}</span>
             </div>
+            {nominationFee > 0 && (
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-gray-500">指名料</span>
+                <span className="font-bold text-orange-600">¥{nominationFee.toLocaleString()}</span>
+              </div>
+            )}
             <div className="flex justify-between border-b pb-2">
               <span className="text-gray-500">所要時間</span>
               <span className="font-bold">{time}</span>

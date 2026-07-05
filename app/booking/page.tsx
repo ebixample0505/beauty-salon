@@ -62,6 +62,7 @@ function BookingContent() {
   const price = searchParams.get('price') || '';
   const staffId = searchParams.get('staffId') || ''; // ''=お任せ
   const staffName = searchParams.get('staffName') || 'お任せ';
+  const nominationFee = searchParams.get('nominationFee') || '0';
 
   const todayDate = new Date();
   const todayStr = toDateString(todayDate);
@@ -165,7 +166,7 @@ function BookingContent() {
       return;
     }
     router.push(
-      `/profile?menu=${menu}&time=${time}&price=${price}&date=${selectedDate}&slot=${selectedTime}&staffId=${staffId}&staffName=${encodeURIComponent(staffName)}`
+      `/profile?menu=${menu}&time=${time}&price=${price}&date=${selectedDate}&slot=${selectedTime}&staffId=${staffId}&staffName=${encodeURIComponent(staffName)}&nominationFee=${nominationFee}`
     );
   };
 

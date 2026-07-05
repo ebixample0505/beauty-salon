@@ -16,6 +16,7 @@ function ProfileContent() {
   const slot = searchParams.get('slot') || '';
   const staffId = searchParams.get('staffId') || '';
   const staffName = searchParams.get('staffName') || 'お任せ';
+  const nominationFee = searchParams.get('nominationFee') || '0';
 
   const [lineUserId, setLineUserId] = useState('temp-user');
   const [name, setName] = useState('');
@@ -44,7 +45,7 @@ function ProfileContent() {
       if (customer) {
         // 登録済みの場合は入力画面をスキップして確認画面へ
         router.replace(
-          `/confirm?menu=${menu}&time=${time}&price=${price}&date=${date}&slot=${slot}&staffId=${staffId}&staffName=${encodeURIComponent(staffName)}&name=${encodeURIComponent(customer.name)}&phone=${encodeURIComponent(customer.phone)}&email=${encodeURIComponent(customer.email || '')}&lineUserId=${uid}`
+          `/confirm?menu=${menu}&time=${time}&price=${price}&date=${date}&slot=${slot}&staffId=${staffId}&staffName=${encodeURIComponent(staffName)}&nominationFee=${nominationFee}&name=${encodeURIComponent(customer.name)}&phone=${encodeURIComponent(customer.phone)}&email=${encodeURIComponent(customer.email || '')}&lineUserId=${uid}`
         );
         return;
       }
@@ -77,7 +78,7 @@ function ProfileContent() {
     });
 
     router.push(
-      `/confirm?menu=${menu}&time=${time}&price=${price}&date=${date}&slot=${slot}&staffId=${staffId}&staffName=${encodeURIComponent(staffName)}&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&lineUserId=${lineUserId}`
+      `/confirm?menu=${menu}&time=${time}&price=${price}&date=${date}&slot=${slot}&staffId=${staffId}&staffName=${encodeURIComponent(staffName)}&nominationFee=${nominationFee}&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&lineUserId=${lineUserId}`
     );
   };
 
