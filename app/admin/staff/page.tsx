@@ -8,6 +8,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { requireAdminAuth } from '@/lib/adminAuth';
+import AdminHeader from '@/components/AdminHeader';
 
 const DAYS = ['月', '火', '水', '木', '金', '土', '日'];
 
@@ -203,22 +204,15 @@ export default function AdminStaffPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="bg-gray-800 text-white p-4">
-        <button onClick={() => router.push('/admin')} className="text-sm text-gray-400 mb-2">
-          &lt;- 管理画面に戻る
+      <AdminHeader title="スタッフ管理" subtitle={`${staffList.length}名登録`} currentPath="/admin/staff" />
+
+      <div className="bg-white px-4 py-3 flex justify-end border-b">
+        <button
+          onClick={() => { resetForm(); setShowForm(true); }}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-sm"
+        >
+          + 新規登録
         </button>
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-lg font-bold">スタッフ管理</h1>
-            <p className="text-xs text-gray-400 mt-1">{staffList.length}名登録</p>
-          </div>
-          <button
-            onClick={() => { resetForm(); setShowForm(true); }}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-sm"
-          >
-            + 新規登録
-          </button>
-        </div>
       </div>
 
       {/* 作成・編集フォーム */}

@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import AdminHeader from '@/components/AdminHeader';
 
 type MenuItem = {
   label: string;
@@ -153,16 +154,7 @@ export default function AdminRichMenuPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="bg-gray-800 text-white p-4">
-        <button
-          onClick={() => window.location.href = '/admin'}
-          className="text-sm text-gray-400 mb-2"
-        >
-          &lt;- 管理画面に戻る
-        </button>
-        <h1 className="text-lg font-bold">リッチメニュー管理</h1>
-        <p className="text-xs text-gray-400 mt-1">上部タブバー切り替え・2段×3列レイアウト</p>
-      </div>
+      <AdminHeader title="リッチメニュー管理" subtitle="上部タブバー切り替え・2段×3列レイアウト" currentPath="/admin/richmenu" />
 
       {/* プレビュー */}
       <div className="m-4 bg-white rounded-xl shadow p-4">

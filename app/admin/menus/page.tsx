@@ -1,12 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import {
   collection, getDocs, addDoc,
   updateDoc, doc, deleteDoc, orderBy, query
 } from 'firebase/firestore';
 import { requireAdminAuth } from '@/lib/adminAuth';
+import { useRouter } from 'next/navigation';
+import AdminHeader from '@/components/AdminHeader';
 
 type Menu = {
   id: string;
@@ -107,25 +108,15 @@ export default function AdminMenusPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="bg-gray-800 text-white p-4">
+      <AdminHeader title="メニュー管理" subtitle={`${menus.length}件登録`} currentPath="/admin/menus" />
+
+      <div className="bg-white px-4 py-3 flex justify-end border-b">
         <button
-          onClick={() => router.push('/admin')}
-          className="text-sm text-gray-400 mb-2"
+          onClick={() => { resetForm(); setShowForm(true); }}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-sm"
         >
-          &lt;- 管理画面に戻る
+          + 新規作成
         </button>
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-lg font-bold">メニュー管理</h1>
-            <p className="text-xs text-gray-400 mt-1">{menus.length}件登録</p>
-          </div>
-          <button
-            onClick={() => { resetForm(); setShowForm(true); }}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-sm"
-          >
-            + 新規作成
-          </button>
-        </div>
       </div>
 
       {/* 作成・編集フォーム */}

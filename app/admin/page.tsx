@@ -6,6 +6,7 @@ import {
   orderBy, updateDoc, doc
 } from 'firebase/firestore';
 import { addPointsForPayment, redeemPoints } from '@/lib/customer';
+import AdminHeader from '@/components/AdminHeader';
 
 type Booking = {
   id: string;
@@ -147,11 +148,6 @@ export default function AdminPage() {
     }
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('admin_authenticated');
-    window.location.href = '/admin/login';
-  };
-
   const toDateString = (date: Date) => date.toISOString().split('T')[0];
 
   const getDaysInMonth = (year: number, month: number) => {
@@ -269,48 +265,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* ヘッダー */}
-      <div className="bg-gray-800 text-white p-4">
-        <h1 className="text-lg font-bold">管理画面</h1>
-        <p className="text-xs text-gray-400">美容室予約管理システム</p>
-        <div className="flex gap-2 mt-3 flex-wrap">
-          <button
-            onClick={() => window.location.href = '/admin/customers'}
-            className="bg-gray-700 text-white text-xs px-3 py-1.5 rounded-lg"
-          >
-            顧客管理
-          </button>
-          <button
-            onClick={() => window.location.href = '/admin/coupons'}
-            className="bg-gray-700 text-white text-xs px-3 py-1.5 rounded-lg"
-          >
-            クーポン管理
-          </button>
-          <button
-            onClick={() => window.location.href = '/admin/messages'}
-            className="bg-gray-700 text-white text-xs px-3 py-1.5 rounded-lg"
-          >
-            メッセージ管理
-          </button>
-          <button
-            onClick={() => window.location.href = '/admin/menus'}
-            className="bg-gray-700 text-white text-xs px-3 py-1.5 rounded-lg"
-          >
-            メニュー管理
-          </button>
-          <button
-            onClick={() => window.location.href = '/admin/richmenu'}
-            className="bg-gray-700 text-white text-xs px-3 py-1.5 rounded-lg"
-          >
-            リッチメニュー
-          </button>
-          <button
-            onClick={handleLogout}
-            className="bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg"
-          >
-            ログアウト
-          </button>
-        </div>
-      </div>
+      <AdminHeader title="予約管理" subtitle="美容室予約管理システム" currentPath="/admin" />
 
       {/* タブ */}
       <div className="flex bg-white border-b">
