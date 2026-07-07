@@ -74,7 +74,7 @@ function ConfirmContent() {
   const handleConfirm = async () => {
     setLoading(true);
     try {
-      await addDoc(collection(db, 'bookings'), {
+      const docRef = await addDoc(collection(db, 'bookings'), {
         lineUserId,
         name,
         phone,
@@ -106,7 +106,7 @@ function ConfirmContent() {
       }
 
       router.push(
-        `/complete?menu=${encodeURIComponent(menu)}&time=${encodeURIComponent(time)}&price=${encodeURIComponent(price)}&date=${date}&slot=${slot}&staffName=${encodeURIComponent(staffName)}`
+        `/complete?menu=${encodeURIComponent(menu)}&time=${encodeURIComponent(time)}&price=${encodeURIComponent(price)}&date=${date}&slot=${slot}&staffName=${encodeURIComponent(staffName)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&bookingId=${docRef.id}&finalAmount=${discountedPrice}&lineUserId=${lineUserId}`
       );
     } catch (e) {
       console.error('保存エラー:', e);

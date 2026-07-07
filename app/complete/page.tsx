@@ -31,6 +31,11 @@ function CompleteContent() {
   const date = searchParams.get('date') || '';
   const slot = searchParams.get('slot') || '';
   const staffName = searchParams.get('staffName') || '';
+  const phone = searchParams.get('phone') || '';
+  const email = searchParams.get('email') || '';
+  const bookingId = searchParams.get('bookingId') || '';
+  const finalAmount = searchParams.get('finalAmount') || '';
+  const lineUserId = searchParams.get('lineUserId') || '';
 
   const startDate = toUtcDate(date, slot);
   const durationMin = parseDurationMinutes(time);
@@ -41,6 +46,38 @@ function CompleteContent() {
     // LIFFの外部ブラウザ機能を使うためにinitしておく（未初期化でも他ページで済んでいれば無害）
     liff.init({ liffId: '2010454791-miMuAYxd' }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!bookingId) return; // 予約IDが無い場合（直接アクセス等）は送信しない
+
+    const value = finalAmount ? Number(finalAmount) : undefined;
+
+    // クライアント側のPixelイベント（同じevent_idでサーバー送信と重複排除される）
+    try {
+      // @ts-ignore
+      if (typeof window !== 'undefined' && window.fbq) {
+        // @ts-ignore
+        window.fbq('track', 'Schedule', { value, currency: 'JPY' }, { eventID: bookingId });
+      }
+    } catch (e) {
+      console.log('fbqエラー:', e);
+    }
+
+    // サーバー側からMeta Conversions APIへ送信
+    fetch('/api/meta-conversion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventName: 'Schedule',
+        eventId: bookingId,
+        phone,
+        email,
+        value,
+        currency: 'JPY',
+        lineUserId,
+      }),
+    }).catch(e => console.log('コンバージョン送信エラー:', e));
+  }, [bookingId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openUrl = (url: string) => {
     try {
