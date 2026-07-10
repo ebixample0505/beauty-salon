@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
     );
 
     const data = await res.json();
+    console.log('Meta Conversions APIレスポンス:', JSON.stringify(data));
 
     if (!res.ok) {
       console.error('Meta Conversions APIエラー:', data);
