@@ -2,11 +2,25 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import liff from '@line/liff';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+
+type Menu = {
+  id: string;
+  name: string;
+  time: string;
+  price: string;
+  description?: string;
+  isActive: boolean;
+  order: number;
+};
 
 export default function Home() {
   const router = useRouter();
   const [userName, setUserName] = useState('');
   const [loading, setLoading] = useState(true);
+  const [menus, setMenus] = useState<Menu[]>([]);
+  const [menusLoading, setMenusLoading] = useState(true);
 
   useEffect(() => {
     const init = async () => {
@@ -23,7 +37,6 @@ export default function Home() {
         const searchParams = new URLSearchParams(window.location.search);
         const mid = searchParams.get('mid');
         if (mid) {
-          const { db } = await import('@/lib/firebase');
           const { doc, updateDoc, increment } = await import('firebase/firestore');
           await updateDoc(doc(db, 'messages', mid), {
             clickCount: increment(1),
@@ -39,16 +52,23 @@ export default function Home() {
     init();
   }, []);
 
-  const menus = [
-    { id: 1, name: 'カット', time: '60分', price: '¥4,000' },
-    { id: 2, name: 'カラー', time: '90分', price: '¥8,000' },
-    { id: 3, name: 'パーマ', time: '120分', price: '¥12,000' },
-    { id: 4, name: 'カット + カラー', time: '120分', price: '¥11,000' },
-    { id: 5, name: 'カット + パーマ', time: '150分', price: '¥15,000' },
-    { id: 6, name: 'トリートメント', time: '30分', price: '¥3,000' },
-    { id: 7, name: 'ヘッドスパ', time: '45分', price: '¥5,000' },
-    { id: 8, name: 'まつげエクステ', time: '90分', price: '¥8,000' },
-  ];
+  useEffect(() => {
+    const fetchMenus = async () => {
+      try {
+        const q = query(collection(db, 'menus'), where('isActive', '==', true));
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs
+          .map(d => ({ id: d.id, ...d.data() }) as Menu)
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        setMenus(data);
+      } catch (e) {
+        console.error('メニュー取得エラー:', e);
+      } finally {
+        setMenusLoading(false);
+      }
+    };
+    fetchMenus();
+  }, []);
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen">
@@ -67,24 +87,34 @@ export default function Home() {
       <div className="p-4">
         {/* メニュー選択 */}
         <h2 className="text-lg font-bold mb-4">メニューを選択してください</h2>
-        <div className="space-y-3">
-          {menus.map((menu) => (
-            <button
-              key={menu.id}
-              onClick={() => router.push(`/staff?menu=${menu.name}&time=${menu.time}&price=${menu.price}`)}
-              className="w-full bg-white rounded-xl p-4 shadow flex justify-between items-center"
-            >
-              <div className="text-left">
-                <p className="font-bold">{menu.name}</p>
-                <p className="text-sm text-gray-500">{menu.time}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-blue-600 font-bold">{menu.price}</p>
-                <p className="text-gray-400 text-xs">›</p>
-              </div>
-            </button>
-          ))}
-        </div>
+
+        {menusLoading ? (
+          <p className="text-center text-gray-400 py-12">読み込み中...</p>
+        ) : menus.length === 0 ? (
+          <p className="text-center text-gray-400 py-12">現在ご案内できるメニューがありません</p>
+        ) : (
+          <div className="space-y-3">
+            {menus.map((menu) => (
+              <button
+                key={menu.id}
+                onClick={() => router.push(`/staff?menu=${menu.name}&time=${menu.time}&price=${menu.price}`)}
+                className="w-full bg-white rounded-xl p-4 shadow flex justify-between items-center"
+              >
+                <div className="text-left">
+                  <p className="font-bold">{menu.name}</p>
+                  {menu.description && (
+                    <p className="text-xs text-gray-500 mt-0.5">{menu.description}</p>
+                  )}
+                  <p className="text-sm text-gray-500 mt-1">{menu.time}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-blue-600 font-bold">{menu.price}</p>
+                  <p className="text-gray-400 text-xs">›</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* クーポンボタン */}
         <button
