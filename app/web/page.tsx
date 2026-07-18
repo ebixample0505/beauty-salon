@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 
+// このページを毎回サーバー側で動的に生成し、Firestoreの最新データを反映させる
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'test美容室 | WEB予約',
   description:
