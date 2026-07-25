@@ -81,11 +81,12 @@ function BookingContent() {
     const fetchData = async () => {
       try {
         const staffQ = query(collection(db, 'staff'), where('isActive', '==', true));
-        const staffSnap = await getDocs(staffQ);
-        setStaffList(staffSnap.docs.map(d => ({ id: d.id, ...d.data() }) as Staff));
-
         const bookingQ = query(collection(db, 'bookings'), where('status', '==', 'confirmed'));
-        const bookingSnap = await getDocs(bookingQ);
+
+        // 2つの問い合わせを同時に実行し、待ち時間を短縮する
+        const [staffSnap, bookingSnap] = await Promise.all([getDocs(staffQ), getDocs(bookingQ)]);
+
+        setStaffList(staffSnap.docs.map(d => ({ id: d.id, ...d.data() }) as Staff));
         setBookings(bookingSnap.docs.map(d => d.data() as BookingRecord));
       } catch (e) {
         console.error(e);
