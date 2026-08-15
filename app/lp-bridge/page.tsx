@@ -26,7 +26,7 @@ function BridgeContent() {
       <p className="text-xs text-gray-400 mt-2">自動で切り替わらない場合はこちら</p>
       <a
         href={LINE_ADD_FRIEND_URL}
-        className="mt-3 text-blue-600 underline text-sm font-bold"
+        className="mt-3 text-blue-600 underline text-sm font-bold cursor-pointer"
       >
         友だち追加はこちら
       </a>

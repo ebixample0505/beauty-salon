@@ -77,7 +77,7 @@ function StaffSelectContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-blue-600 text-white p-6">
-        <button onClick={() => router.back()} className="text-sm mb-2">← 戻る</button>
+        <button onClick={() => router.back()} className="text-sm mb-2 cursor-pointer">← 戻る</button>
         <h1 className="text-xl font-bold">スタイリストを指名</h1>
         <p className="text-sm mt-1">{menu} / {time} / {price}</p>
       </div>

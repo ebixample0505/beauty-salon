@@ -161,11 +161,11 @@ export default function BookingCalendarWidget({ staffId, selectedDate, selectedT
       </div>
 
       <div className="flex justify-between items-center mb-2">
-        <button onClick={goPrevWeek} className="text-sm text-blue-600 font-bold px-2 py-1">‹ 前の一週間</button>
+        <button onClick={goPrevWeek} className="text-sm text-blue-600 font-bold px-2 py-1 cursor-pointer">‹ 前の一週間</button>
         <span className="text-sm font-bold text-gray-700">
           {weekDates[0].getFullYear()}年{weekDates[0].getMonth() + 1}月
         </span>
-        <button onClick={goNextWeek} className="text-sm text-blue-600 font-bold px-2 py-1">次の一週間 ›</button>
+        <button onClick={goNextWeek} className="text-sm text-blue-600 font-bold px-2 py-1 cursor-pointer">次の一週間 ›</button>
       </div>
 
       {loading ? (

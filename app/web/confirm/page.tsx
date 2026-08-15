@@ -99,7 +99,7 @@ function ConfirmContent() {
   return (
     <div>
       <div className="bg-blue-600 text-white p-6">
-        <button onClick={() => router.back()} className="text-sm mb-2">← 戻る</button>
+        <button onClick={() => router.back()} className="text-sm mb-2 cursor-pointer">← 戻る</button>
         <h1 className="text-xl font-bold">予約内容の確認</h1>
       </div>
 
@@ -167,7 +167,7 @@ function ConfirmContent() {
               <span className="text-gray-500 font-bold">pt 利用</span>
               <button
                 onClick={() => setPointsToUse(String(maxUsablePoints))}
-                className="text-xs text-blue-600 font-bold border border-blue-600 rounded-lg px-2 py-1"
+                className="text-xs text-blue-600 font-bold border border-blue-600 rounded-lg px-2 py-1 cursor-pointer"
               >
                 全部使う
               </button>
@@ -189,14 +189,14 @@ function ConfirmContent() {
         <button
           onClick={handleConfirm}
           disabled={loading}
-          className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg disabled:opacity-50"
+          className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg disabled:opacity-50 cursor-pointer"
         >
           {loading ? '処理中...' : '予約を確定する'}
         </button>
 
         <button
           onClick={() => router.back()}
-          className="w-full mt-3 border border-gray-300 text-gray-600 rounded-xl p-4 font-bold"
+          className="w-full mt-3 border border-gray-300 text-gray-600 rounded-xl p-4 font-bold cursor-pointer"
         >
           修正する
         </button>

@@ -98,7 +98,7 @@ export default function Home() {
               <button
                 key={menu.id}
                 onClick={() => router.push(`/staff?menu=${menu.name}&time=${menu.time}&price=${menu.price}`)}
-                className="w-full bg-white rounded-xl p-4 shadow flex justify-between items-center"
+                className="w-full bg-white rounded-xl p-4 shadow flex justify-between items-center cursor-pointer"
               >
                 <div className="text-left">
                   <p className="font-bold">{menu.name}</p>
@@ -119,7 +119,7 @@ export default function Home() {
         {/* クーポンボタン */}
         <button
           onClick={() => router.push('/coupon')}
-          className="w-full mt-6 bg-yellow-400 text-white rounded-xl p-4 font-bold"
+          className="w-full mt-6 bg-yellow-400 text-white rounded-xl p-4 font-bold cursor-pointer"
         >
           クーポンを見る
         </button>
@@ -127,7 +127,7 @@ export default function Home() {
         {/* マイページボタン */}
         <button
           onClick={() => router.push('/mypage')}
-          className="w-full mt-3 border border-blue-600 text-blue-600 rounded-xl p-4 font-bold"
+          className="w-full mt-3 border border-blue-600 text-blue-600 rounded-xl p-4 font-bold cursor-pointer"
         >
           予約確認・キャンセル
         </button>

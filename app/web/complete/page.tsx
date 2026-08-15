@@ -112,13 +112,13 @@ function CompleteContent() {
           <p className="text-sm font-bold text-gray-600 text-center mb-1">予定をカレンダーに追加できます</p>
           <button
             onClick={handleAddToGoogleCalendar}
-            className="w-full border-2 border-blue-600 text-blue-600 rounded-xl p-3 font-bold text-sm bg-white"
+            className="w-full border-2 border-blue-600 text-blue-600 rounded-xl p-3 font-bold text-sm bg-white cursor-pointer"
           >
             📅 Googleカレンダーに追加
           </button>
           <button
             onClick={handleAddToIphoneCalendar}
-            className="w-full border-2 border-gray-400 text-gray-700 rounded-xl p-3 font-bold text-sm bg-white"
+            className="w-full border-2 border-gray-400 text-gray-700 rounded-xl p-3 font-bold text-sm bg-white cursor-pointer"
           >
             📱 iPhoneカレンダーに追加
           </button>
@@ -127,7 +127,7 @@ function CompleteContent() {
 
       <a
         href="/web"
-        className="w-full bg-gray-700 text-white rounded-xl p-4 font-bold text-lg text-center"
+        className="w-full bg-gray-700 text-white rounded-xl p-4 font-bold text-lg text-center cursor-pointer"
       >
         トップに戻る
       </a>

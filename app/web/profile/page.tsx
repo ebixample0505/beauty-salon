@@ -60,7 +60,7 @@ function ProfileContent() {
   return (
     <div>
       <div className="bg-blue-600 text-white p-6">
-        <button onClick={() => router.back()} className="text-sm mb-2">← 戻る</button>
+        <button onClick={() => router.back()} className="text-sm mb-2 cursor-pointer">← 戻る</button>
         <h1 className="text-xl font-bold">お客様情報の入力</h1>
         <p className="text-sm mt-1 text-blue-100">予約確認メールをお送りします</p>
       </div>
@@ -116,7 +116,7 @@ function ProfileContent() {
         <button
           onClick={handleNext}
           disabled={submitting}
-          className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg disabled:opacity-50"
+          className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg disabled:opacity-50 cursor-pointer"
         >
           {submitting ? '処理中...' : '次へ（予約確認）'}
         </button>

@@ -62,7 +62,7 @@ export default function StaffPickerWidget({ selectedStaffId, onChange, previousS
       <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
         <button
           onClick={() => handleSelect('')}
-          className={`shrink-0 px-4 py-3 rounded-full border-2 font-bold text-sm ${
+          className={`shrink-0 px-4 py-3 rounded-full border-2 font-bold text-sm cursor-pointer ${
             selectedStaffId === ''
               ? 'border-blue-600 bg-blue-50 text-blue-600'
               : 'border-gray-200 bg-white text-gray-600'
@@ -74,7 +74,7 @@ export default function StaffPickerWidget({ selectedStaffId, onChange, previousS
           <button
             key={staff.id}
             onClick={() => handleSelect(staff.id)}
-            className={`shrink-0 px-4 py-3 rounded-full border-2 font-bold text-sm flex items-center gap-1 ${
+            className={`shrink-0 px-4 py-3 rounded-full border-2 font-bold text-sm flex items-center gap-1 cursor-pointer ${
               selectedStaffId === staff.id
                 ? 'border-blue-600 bg-blue-50 text-blue-600'
                 : 'border-gray-200 bg-white text-gray-600'
@@ -132,12 +132,12 @@ export default function StaffPickerWidget({ selectedStaffId, onChange, previousS
               {showFullCareer ? (
                 <>
                   <p className="text-sm text-gray-500 whitespace-pre-wrap">{selectedStaff.career}</p>
-                  <button onClick={() => setShowFullCareer(false)} className="text-xs text-blue-600 font-bold mt-1">
+                  <button onClick={() => setShowFullCareer(false)} className="text-xs text-blue-600 font-bold mt-1 cursor-pointer">
                     閉じる
                   </button>
                 </>
               ) : (
-                <button onClick={() => setShowFullCareer(true)} className="text-xs text-blue-600 font-bold underline">
+                <button onClick={() => setShowFullCareer(true)} className="text-xs text-blue-600 font-bold underline cursor-pointer">
                   詳細を見る
                 </button>
               )}

@@ -33,7 +33,7 @@ function StaffSelectContent() {
   return (
     <div>
       <div className="bg-blue-600 text-white p-6">
-        <button onClick={() => router.back()} className="text-sm mb-2">← 戻る</button>
+        <button onClick={() => router.back()} className="text-sm mb-2 cursor-pointer">← 戻る</button>
         <h1 className="text-xl font-bold">スタイリストを指名</h1>
         <p className="text-sm mt-1">{menu} / {time} / {price}</p>
       </div>
@@ -59,7 +59,7 @@ function StaffSelectContent() {
 
         <button
           onClick={handleNext}
-          className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg"
+          className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg cursor-pointer"
         >
           次へ（日時を選択）
         </button>

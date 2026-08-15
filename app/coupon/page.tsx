@@ -98,7 +98,7 @@ export default function CouponPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-blue-600 text-white p-6">
-        <button onClick={() => router.push('/')} className="text-sm mb-2">← 戻る</button>
+        <button onClick={() => router.push('/')} className="text-sm mb-2 cursor-pointer">← 戻る</button>
         <h1 className="text-xl font-bold">クーポン一覧</h1>
         <p className="text-sm mt-1 text-blue-100">お得なクーポンをご利用ください</p>
       </div>
@@ -150,7 +150,7 @@ export default function CouponPage() {
                       className={`w-full py-3 rounded-xl font-bold text-sm ${
                         isUsed
                           ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-blue-600 text-white'
+                          : 'bg-blue-600 text-white cursor-pointer'
                       }`}
                     >
                       {isUsed ? '使用済み' : usingCoupon === coupon.id ? '処理中...' : 'クーポンを使う'}

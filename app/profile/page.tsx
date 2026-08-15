@@ -91,7 +91,7 @@ function ProfileContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-blue-600 text-white p-6">
-        <button onClick={() => router.back()} className="text-sm mb-2">← 戻る</button>
+        <button onClick={() => router.back()} className="text-sm mb-2 cursor-pointer">← 戻る</button>
         <h1 className="text-xl font-bold">お客様情報の入力</h1>
         <p className="text-sm mt-1 text-blue-100">初回のみ入力が必要です</p>
       </div>
@@ -149,7 +149,7 @@ function ProfileContent() {
 
         <button
           onClick={handleNext}
-          className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg"
+          className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg cursor-pointer"
         >
           次へ（予約確認）
         </button>

@@ -55,7 +55,7 @@ export default async function WebHomePage() {
               <a
                 key={menu.id}
                 href={`/web/staff?menu=${encodeURIComponent(menu.name)}&time=${encodeURIComponent(menu.time)}&price=${encodeURIComponent(menu.price)}`}
-                className="block bg-white rounded-xl p-4 shadow flex justify-between items-center"
+                className="block bg-white rounded-xl p-4 shadow flex justify-between items-center cursor-pointer"
               >
                 <div className="text-left">
                   <p className="font-bold">{menu.name}</p>

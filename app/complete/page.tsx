@@ -134,13 +134,13 @@ function CompleteContent() {
           </p>
           <button
             onClick={handleAddToGoogleCalendar}
-            className="w-full border-2 border-blue-600 text-blue-600 rounded-xl p-3 font-bold text-sm bg-white"
+            className="w-full border-2 border-blue-600 text-blue-600 rounded-xl p-3 font-bold text-sm bg-white cursor-pointer"
           >
             📅 Googleカレンダーに追加
           </button>
           <button
             onClick={handleAddToIphoneCalendar}
-            className="w-full border-2 border-gray-400 text-gray-700 rounded-xl p-3 font-bold text-sm bg-white"
+            className="w-full border-2 border-gray-400 text-gray-700 rounded-xl p-3 font-bold text-sm bg-white cursor-pointer"
           >
             📱 iPhoneカレンダーに追加
           </button>
@@ -152,7 +152,7 @@ function CompleteContent() {
 
       <button
         onClick={() => router.push('/')}
-        className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg"
+        className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg cursor-pointer"
       >
         トップに戻る
       </button>

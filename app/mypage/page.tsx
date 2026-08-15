@@ -120,18 +120,18 @@ export default function MyPage() {
       {booking.status === 'confirmed' && booking.date >= today && (
         <button
           onClick={() => handleCancel(booking.id)}
-          className="w-full border border-red-400 text-red-400 rounded-lg py-2 text-sm font-bold"
+          className="w-full border border-red-400 text-red-400 rounded-lg py-2 text-sm font-bold cursor-pointer"
         >
           キャンセルする
         </button>
-      )}
+      )}}
     </div>
   );
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-blue-600 text-white p-6">
-        <button onClick={() => router.push('/')} className="text-sm mb-2">← 戻る</button>
+        <button onClick={() => router.push('/')} className="text-sm mb-2 cursor-pointer">← 戻る</button>
         <h1 className="text-xl font-bold">予約確認・履歴</h1>
       </div>
 
@@ -139,7 +139,7 @@ export default function MyPage() {
       <div className="flex border-b bg-white">
         <button
           onClick={() => setActiveTab('upcoming')}
-          className={`flex-1 py-3 font-bold text-sm ${
+          className={`flex-1 py-3 font-bold text-sm cursor-pointer ${
             activeTab === 'upcoming'
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-500'
@@ -154,7 +154,7 @@ export default function MyPage() {
         </button>
         <button
           onClick={() => setActiveTab('history')}
-          className={`flex-1 py-3 font-bold text-sm ${
+          className={`flex-1 py-3 font-bold text-sm cursor-pointer ${
             activeTab === 'history'
               ? 'border-b-2 border-blue-600 text-blue-600'
               : 'text-gray-500'
@@ -177,7 +177,7 @@ export default function MyPage() {
               <p>予約はありません</p>
               <button
                 onClick={() => router.push('/')}
-                className="mt-4 bg-blue-600 text-white rounded-xl px-6 py-3 font-bold"
+                className="mt-4 bg-blue-600 text-white rounded-xl px-6 py-3 font-bold cursor-pointer"
               >
                 予約する
               </button>
