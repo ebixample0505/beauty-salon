@@ -6,7 +6,7 @@ import BookingCalendarWidget from '@/components/BookingCalendarWidget';
 
 function BookingContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams();  // URLのクエリパラメータを取得するためのフック
   const menu = searchParams.get('menu') || '';
   const time = searchParams.get('time') || '';
   const price = searchParams.get('price') || '';
@@ -14,7 +14,7 @@ function BookingContent() {
   const staffName = searchParams.get('staffName') || 'お任せ';
   const nominationFee = searchParams.get('nominationFee') || '0';
 
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');  // 選択した日付を一時的に保持して、次ページへの遷移に使用するための状態管理
   const [selectedTime, setSelectedTime] = useState('');
 
   const handleNext = () => {
@@ -59,7 +59,7 @@ function BookingContent() {
 
 export default function BookingPage() {
   return (
-    <Suspense>
+    <Suspense>  //「このコンポーネントはクライアント側（ブラウザ側）でだけ動かしてね」と指示
       <BookingContent />
     </Suspense>
   );
