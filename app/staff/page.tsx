@@ -109,7 +109,7 @@ function StaffSelectContent() {
 
         <button
           onClick={handleNext}
-          className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg"
+          className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg cursor-pointer"
         >
           次へ（日時を選択）
         </button>
