@@ -39,26 +39,27 @@ function StaffSelectContent() {
         if (!isLocalhost) {
           await liff.init({ liffId: '2010454791-miMuAYxd' });
           if (!liff.isLoggedIn()) return;
-        const profile = await liff.getProfile();
+          const profile = await liff.getProfile();
 
-        const q = query(
-          collection(db, 'bookings'),
-          where('lineUserId', '==', profile.userId),
-          where('status', '==', 'confirmed')
-        );
-        const snapshot = await getDocs(q);
-        const records = snapshot.docs.map(d => d.data() as BookingRecord);
-        if (records.length === 0) return;
+          const q = query(
+            collection(db, 'bookings'),
+            where('lineUserId', '==', profile.userId),
+            where('status', '==', 'confirmed')
+          );
+          const snapshot = await getDocs(q);
+          const records = snapshot.docs.map(d => d.data() as BookingRecord);
+          if (records.length === 0) return;
 
-        records.sort((a, b) => {
-          const at = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-          const bt = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-          return bt - at;
-        });
-        const latest = records.find(r => r.staffId);
-        if (latest?.staffId) {
-          setPreviousStaffId(latest.staffId);
-          setSelectedStaffId(latest.staffId);
+          records.sort((a, b) => {
+            const at = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+            const bt = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+            return bt - at;
+          });
+          const latest = records.find(r => r.staffId);
+          if (latest?.staffId) {
+            setPreviousStaffId(latest.staffId);
+            setSelectedStaffId(latest.staffId);
+          }
         }
       } catch (e) {
         console.log('前回担当の取得に失敗:', e);
