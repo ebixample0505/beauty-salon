@@ -25,13 +25,20 @@ export default function Home() {
   useEffect(() => {
     const init = async () => {
       try {
-        await liff.init({ liffId: '2010454791-miMuAYxd' });
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
+        // ローカルホストでのテスト時はLIFF初期化をスキップ
+        const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+        
+        if (!isLocalhost) {
+          await liff.init({ liffId: '2010454791-miMuAYxd' });
+          if (!liff.isLoggedIn()) {
+            liff.login();
+            return;
+          }
+          const profile = await liff.getProfile();
+          setUserName(profile.displayName);
+        } else {
+          setUserName('テストユーザー');
         }
-        const profile = await liff.getProfile();
-        setUserName(profile.displayName);
 
         // クリック計測
         const searchParams = new URLSearchParams(window.location.search);

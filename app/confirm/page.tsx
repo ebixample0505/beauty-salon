@@ -47,16 +47,21 @@ function ConfirmContent() {
         uid = lineUserIdParam;
         setLineUserId(uid);
       } else {
-        // なければLIFFから取得
-        try {
-          await liff.init({ liffId: '2010454791-miMuAYxd' });
-          if (liff.isLoggedIn()) {
-            const profile = await liff.getProfile();
-            uid = profile.userId;
-            setLineUserId(uid);
+        // ローカルホストでのテスト時はLIFF初期化をスキップ
+        const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+        
+        if (!isLocalhost) {
+          // なければLIFFから取得
+          try {
+            await liff.init({ liffId: '2010454791-miMuAYxd' });
+            if (liff.isLoggedIn()) {
+              const profile = await liff.getProfile();
+              uid = profile.userId;
+              setLineUserId(uid);
+            }
+          } catch (e) {
+            console.log('LIFF初期化エラー:', e);
           }
-        } catch (e) {
-          console.log('LIFF初期化エラー:', e);
         }
       }
 

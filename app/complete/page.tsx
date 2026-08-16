@@ -44,7 +44,10 @@ function CompleteContent() {
 
   useEffect(() => {
     // LIFFの外部ブラウザ機能を使うためにinitしておく（未初期化でも他ページで済んでいれば無害）
-    liff.init({ liffId: '2010454791-miMuAYxd' }).catch(() => {});
+    const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+    if (!isLocalhost) {
+      liff.init({ liffId: '2010454791-miMuAYxd' }).catch(() => {});
+    }
   }, []);
 
   useEffect(() => {

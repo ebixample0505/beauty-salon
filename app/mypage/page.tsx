@@ -29,11 +29,16 @@ export default function MyPage() {
     const init = async () => {
       let uid = 'temp-user';
       try {
-        await liff.init({ liffId: '2010454791-miMuAYxd' });
-        if (liff.isLoggedIn()) {
-          const profile = await liff.getProfile();
-          uid = profile.userId;
-          setUserId(uid);
+        // ローカルホストでのテスト時はLIFF初期化をスキップ
+        const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+        
+        if (!isLocalhost) {
+          await liff.init({ liffId: '2010454791-miMuAYxd' });
+          if (liff.isLoggedIn()) {
+            const profile = await liff.getProfile();
+            uid = profile.userId;
+            setUserId(uid);
+          }
         }
       } catch (e) {
         console.log('LIFF初期化エラー:', e);

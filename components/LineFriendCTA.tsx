@@ -10,9 +10,9 @@ export default function LineFriendCTA({ variant = 'banner' }: Props) {
     return (
       <a
         href={LINE_ADD_FRIEND_URL}
-        className="block w-full bg-[#06C755] text-white text-center py-4 rounded-xl font-bold text-lg cursor-pointer"
+        className="block w-full bg-[#06C755] text-white text-center py-4 rounded-xl font-bold text-lg cursor-pointer hover:opacity-90"
       >
-        📱 公式線を友だち追加する
+        📱 公式LINEを友だち追加する
       </a>
     );
   }
@@ -20,7 +20,7 @@ export default function LineFriendCTA({ variant = 'banner' }: Props) {
   return (
     <a
       href={LINE_ADD_FRIEND_URL}
-      className="flex items-center justify-between gap-3 bg-[#06C755] text-white px-4 py-2.5 text-sm font-bold cursor-pointer"
+      className="flex items-center justify-between gap-3 bg-[#06C755] text-white px-4 py-2.5 text-sm font-bold cursor-pointer hover:opacity-90"
     >
       <span>🎁 LINE友だち追加で予約がもっと便利に</span>
       <span className="shrink-0 bg-white text-[#06C755] px-3 py-1 rounded-full text-xs">

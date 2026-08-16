@@ -33,8 +33,12 @@ function StaffSelectContent() {
   useEffect(() => {
     const fetchPreviousStaff = async () => {
       try {
-        await liff.init({ liffId: '2010454791-miMuAYxd' });
-        if (!liff.isLoggedIn()) return;
+        // ローカルホストでのテスト時はLIFF初期化をスキップ
+        const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+        
+        if (!isLocalhost) {
+          await liff.init({ liffId: '2010454791-miMuAYxd' });
+          if (!liff.isLoggedIn()) return;
         const profile = await liff.getProfile();
 
         const q = query(
