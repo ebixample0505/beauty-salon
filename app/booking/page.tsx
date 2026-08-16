@@ -59,7 +59,7 @@ function BookingContent() {
 
 export default function BookingPage() {
   return (
-    <Suspense>  //「このコンポーネントはクライアント側（ブラウザ側）でだけ動かしてね」と指示
+    <Suspense>
       <BookingContent />
     </Suspense>
   );
