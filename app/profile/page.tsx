@@ -17,22 +17,35 @@ function ProfileContent() {
   const staffId = searchParams.get('staffId') || '';
   const staffName = searchParams.get('staffName') || 'お任せ';
   const nominationFee = searchParams.get('nominationFee') || '0';
+  const editCustomer = searchParams.get('editCustomer') === '1';
+  const initialName = searchParams.get('name') || '';
+  const initialPhone = searchParams.get('phone') || '';
+  const initialEmail = searchParams.get('email') || '';
 
-  const [lineUserId, setLineUserId] = useState('temp-user');
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [isExisting, setIsExisting] = useState(false);
+  const [lineUserId, setLineUserId] = useState(searchParams.get('lineUserId') || 'temp-user');
+  const [name, setName] = useState(initialName);
+  const [phone, setPhone] = useState(initialPhone);
+  const [email, setEmail] = useState(initialEmail);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
 
   useEffect(() => {
     const init = async () => {
+      if (editCustomer) {
+        const uidFromParam = searchParams.get('lineUserId') || 'temp-user';
+        setLineUserId(uidFromParam);
+        setName(initialName);
+        setPhone(initialPhone);
+        setEmail(initialEmail);
+        setLoading(false);
+        return;
+      }
+
       let uid = 'temp-user';
       try {
         // ローカルホストでのテスト時はLIFF初期化をスキップ
         const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-        
+
         if (!isLocalhost) {
           await liff.init({ liffId: '2010454791-miMuAYxd' });
           if (liff.isLoggedIn()) {
@@ -57,7 +70,7 @@ function ProfileContent() {
       setLoading(false);
     };
     init();
-  }, []);
+  }, [editCustomer, initialEmail, initialName, initialPhone, menu, nominationFee, price, router, searchParams, slot, staffId, staffName, time, date]);
 
   const validate = () => {
     const newErrors: {[key: string]: string} = {};
@@ -97,8 +110,8 @@ function ProfileContent() {
     <div className="min-h-screen bg-gray-50">
       <div className="bg-blue-600 text-white p-6">
         <button onClick={() => router.back()} className="text-sm mb-2 cursor-pointer">← 戻る</button>
-        <h1 className="text-xl font-bold">お客様情報の入力</h1>
-        <p className="text-sm mt-1 text-blue-100">初回のみ入力が必要です</p>
+        <h1 className="text-xl font-bold">{editCustomer ? 'お客様情報の修正' : 'お客様情報の入力'}</h1>
+        <p className="text-sm mt-1 text-blue-100">{editCustomer ? 'ご予約内容に合わせて情報を更新できます' : '初回のみ入力が必要です'}</p>
       </div>
 
       <BookingSteps current={4} />
@@ -156,7 +169,7 @@ function ProfileContent() {
           onClick={handleNext}
           className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg cursor-pointer"
         >
-          次へ（予約確認）
+          {editCustomer ? '修正を保存して確認へ' : '次へ（予約確認）'}
         </button>
       </div>
     </div>

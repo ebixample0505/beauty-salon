@@ -16,10 +16,14 @@ function ProfileContent() {
   const staffId = searchParams.get('staffId') || '';
   const staffName = searchParams.get('staffName') || 'お任せ';
   const nominationFee = searchParams.get('nominationFee') || '0';
+  const editCustomer = searchParams.get('editCustomer') === '1';
+  const initialName = searchParams.get('name') || '';
+  const initialPhone = searchParams.get('phone') || '';
+  const initialEmail = searchParams.get('email') || '';
 
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+  const [name, setName] = useState(initialName);
+  const [phone, setPhone] = useState(initialPhone);
+  const [email, setEmail] = useState(initialEmail);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -35,6 +39,9 @@ function ProfileContent() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  const title = editCustomer ? 'お客様情報の修正' : 'お客様情報の入力';
+  const subtitle = editCustomer ? 'ご予約内容に合わせて情報を更新できます' : '予約確認メールをお送りします';
 
   const handleNext = async () => {
     if (!validate()) return;
@@ -61,8 +68,8 @@ function ProfileContent() {
     <div>
       <div className="bg-blue-600 text-white p-6">
         <button onClick={() => router.back()} className="text-sm mb-2 cursor-pointer">← 戻る</button>
-        <h1 className="text-xl font-bold">お客様情報の入力</h1>
-        <p className="text-sm mt-1 text-blue-100">予約確認メールをお送りします</p>
+        <h1 className="text-xl font-bold">{title}</h1>
+        <p className="text-sm mt-1 text-blue-100">{subtitle}</p>
       </div>
 
       <BookingSteps current={4} />
@@ -118,7 +125,7 @@ function ProfileContent() {
           disabled={submitting}
           className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg disabled:opacity-50 cursor-pointer"
         >
-          {submitting ? '処理中...' : '次へ（予約確認）'}
+          {submitting ? '処理中...' : editCustomer ? '修正を保存して確認へ' : '次へ（予約確認）'}
         </button>
       </div>
     </div>

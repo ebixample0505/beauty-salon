@@ -35,6 +35,12 @@ function ConfirmContent() {
   const pointsToUseNum = Math.min(Math.max(parseInt(pointsToUse || '0', 10) || 0, 0), maxUsablePoints);
   const discountedPrice = priceNum - pointsToUseNum;
 
+  const handleEditCustomer = () => {
+    router.push(
+      `/web/profile?menu=${encodeURIComponent(menu)}&time=${encodeURIComponent(time)}&price=${encodeURIComponent(price)}&date=${date}&slot=${slot}&staffId=${staffId}&staffName=${encodeURIComponent(staffName)}&nominationFee=${nominationFee}&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&webUserId=${webUserId}&editCustomer=1`
+    );
+  };
+
   useEffect(() => {
     const init = async () => {
       if (!webUserId) return;
@@ -195,7 +201,7 @@ function ConfirmContent() {
         </button>
 
         <button
-          onClick={() => router.back()}
+          onClick={handleEditCustomer}
           className="w-full mt-3 border border-gray-300 text-gray-600 rounded-xl p-4 font-bold cursor-pointer"
         >
           修正する
