@@ -21,6 +21,7 @@ function ConfirmContent() {
   const [pointsBalance, setPointsBalance] = useState(0);
   const [pointsToUse, setPointsToUse] = useState('');
 
+  const salonId = searchParams.get('salonId') || '';
   const menu = searchParams.get('menu') || '';
   const time = searchParams.get('time') || '';
   const price = searchParams.get('price') || '';
@@ -41,7 +42,7 @@ function ConfirmContent() {
 
   const handleEditCustomer = () => {
     router.push(
-      `/profile?menu=${encodeURIComponent(menu)}&time=${encodeURIComponent(time)}&price=${encodeURIComponent(price)}&date=${date}&slot=${slot}&staffId=${staffId}&staffName=${encodeURIComponent(staffName)}&nominationFee=${nominationFee}&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&lineUserId=${lineUserIdParam || lineUserId}&editCustomer=1`
+      `/profile?salonId=${salonId}&menu=${encodeURIComponent(menu)}&time=${encodeURIComponent(time)}&price=${encodeURIComponent(price)}&date=${date}&slot=${slot}&staffId=${staffId}&staffName=${encodeURIComponent(staffName)}&nominationFee=${nominationFee}&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&lineUserId=${lineUserIdParam || lineUserId}&editCustomer=1`
     );
   };
 
@@ -86,6 +87,7 @@ function ConfirmContent() {
     setLoading(true);
     try {
       const docRef = await addDoc(collection(db, 'bookings'), {
+        salonId,
         lineUserId,
         name,
         phone,
@@ -117,7 +119,7 @@ function ConfirmContent() {
       }
 
       router.push(
-        `/complete?menu=${encodeURIComponent(menu)}&time=${encodeURIComponent(time)}&price=${encodeURIComponent(price)}&date=${date}&slot=${slot}&staffName=${encodeURIComponent(staffName)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&bookingId=${docRef.id}&finalAmount=${discountedPrice}&lineUserId=${lineUserId}`
+        `/complete?salonId=${salonId}&menu=${encodeURIComponent(menu)}&time=${encodeURIComponent(time)}&price=${encodeURIComponent(price)}&date=${date}&slot=${slot}&staffName=${encodeURIComponent(staffName)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&bookingId=${docRef.id}&finalAmount=${discountedPrice}&lineUserId=${lineUserId}`
       );
     } catch (e) {
       console.error('保存エラー:', e);

@@ -18,9 +18,10 @@ type Props = {
   selectedStaffId: string; // ''=お任せ
   onChange: (staffId: string, staff: Staff | null) => void;
   previousStaffId?: string; // 「前回担当」バッジを出す場合に指定（LINE版のみ利用）
+  salonId?: string; // 指定時はサロンのサブコレクションからスタッフを取得
 };
 
-export default function StaffPickerWidget({ selectedStaffId, onChange, previousStaffId }: Props) {
+export default function StaffPickerWidget({ selectedStaffId, onChange, previousStaffId, salonId }: Props) {
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFullCareer, setShowFullCareer] = useState(false);
@@ -28,7 +29,10 @@ export default function StaffPickerWidget({ selectedStaffId, onChange, previousS
   useEffect(() => {
     const fetchStaff = async () => {
       try {
-        const q = query(collection(db, 'staff'), where('isActive', '==', true));
+        const staffCollection = salonId
+          ? collection(db, 'salons', salonId, 'staff')
+          : collection(db, 'staff');
+        const q = query(staffCollection, where('isActive', '==', true));
         const snapshot = await getDocs(q);
         const data = snapshot.docs
           .map(d => ({ id: d.id, ...d.data() }) as Staff & { order?: number })
@@ -41,7 +45,7 @@ export default function StaffPickerWidget({ selectedStaffId, onChange, previousS
       }
     };
     fetchStaff();
-  }, []);
+  }, [salonId]);
 
   const selectedStaff = staffList.find(s => s.id === selectedStaffId) || null;
   const nominationFee = selectedStaff?.nominationFee || 0;

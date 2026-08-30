@@ -7,6 +7,7 @@ import BookingCalendarWidget from '@/components/BookingCalendarWidget';
 function BookingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();  // URLのクエリパラメータを取得するためのフック
+  const salonId = searchParams.get('salonId') || '';
   const menu = searchParams.get('menu') || '';
   const time = searchParams.get('time') || '';
   const price = searchParams.get('price') || '';
@@ -23,7 +24,7 @@ function BookingContent() {
       return;
     }
     router.push(
-      `/profile?menu=${menu}&time=${time}&price=${price}&date=${selectedDate}&slot=${selectedTime}&staffId=${staffId}&staffName=${encodeURIComponent(staffName)}&nominationFee=${nominationFee}`
+      `/profile?salonId=${salonId}&menu=${menu}&time=${time}&price=${price}&date=${selectedDate}&slot=${selectedTime}&staffId=${staffId}&staffName=${encodeURIComponent(staffName)}&nominationFee=${nominationFee}`
     );
   };
 

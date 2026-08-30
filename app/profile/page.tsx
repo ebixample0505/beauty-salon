@@ -9,6 +9,7 @@ function ProfileContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const salonId = searchParams.get('salonId') || '';
   const menu = searchParams.get('menu') || '';
   const time = searchParams.get('time') || '';
   const price = searchParams.get('price') || '';
@@ -63,7 +64,7 @@ function ProfileContent() {
       if (customer) {
         // 登録済みの場合は入力画面をスキップして確認画面へ
         router.replace(
-          `/confirm?menu=${menu}&time=${time}&price=${price}&date=${date}&slot=${slot}&staffId=${staffId}&staffName=${encodeURIComponent(staffName)}&nominationFee=${nominationFee}&name=${encodeURIComponent(customer.name)}&phone=${encodeURIComponent(customer.phone)}&email=${encodeURIComponent(customer.email || '')}&lineUserId=${uid}`
+          `/confirm?salonId=${salonId}&menu=${menu}&time=${time}&price=${price}&date=${date}&slot=${slot}&staffId=${staffId}&staffName=${encodeURIComponent(staffName)}&nominationFee=${nominationFee}&name=${encodeURIComponent(customer.name)}&phone=${encodeURIComponent(customer.phone)}&email=${encodeURIComponent(customer.email || '')}&lineUserId=${uid}`
         );
         return;
       }
@@ -96,7 +97,7 @@ function ProfileContent() {
     });
 
     router.push(
-      `/confirm?menu=${menu}&time=${time}&price=${price}&date=${date}&slot=${slot}&staffId=${staffId}&staffName=${encodeURIComponent(staffName)}&nominationFee=${nominationFee}&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&lineUserId=${lineUserId}`
+      `/confirm?salonId=${salonId}&menu=${menu}&time=${time}&price=${price}&date=${date}&slot=${slot}&staffId=${staffId}&staffName=${encodeURIComponent(staffName)}&nominationFee=${nominationFee}&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&lineUserId=${lineUserId}`
     );
   };
 

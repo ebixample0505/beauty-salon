@@ -5,6 +5,7 @@ type NavItem = { label: string; href: string };
 
 const NAV_ITEMS: NavItem[] = [
   { label: '予約管理', href: '/admin' },
+  { label: '店舗管理', href: '/admin/salons' },
   { label: '顧客管理', href: '/admin/customers' },
   { label: 'スタッフ管理', href: '/admin/staff' },
   { label: 'クーポン管理', href: '/admin/coupons' },

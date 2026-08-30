@@ -22,6 +22,7 @@ const parsePriceToNumber = (priceStr: string): number => {
 function StaffSelectContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const salonId = searchParams.get('salonId') || '';
   const menu = searchParams.get('menu') || '';
   const time = searchParams.get('time') || '';
   const price = searchParams.get('price') || '';
@@ -75,7 +76,7 @@ function StaffSelectContent() {
     const staffName = selectedStaff ? selectedStaff.name : 'お任せ';
     const finalPrice = `¥${totalPrice.toLocaleString()}`;
     router.push(
-      `/booking?menu=${menu}&time=${time}&price=${encodeURIComponent(finalPrice)}&staffId=${selectedStaffId}&staffName=${encodeURIComponent(staffName)}&nominationFee=${nominationFee}`
+      `/booking?salonId=${salonId}&menu=${menu}&time=${time}&price=${encodeURIComponent(finalPrice)}&staffId=${selectedStaffId}&staffName=${encodeURIComponent(staffName)}&nominationFee=${nominationFee}`
     );
   };
 
@@ -98,6 +99,7 @@ function StaffSelectContent() {
           selectedStaffId={selectedStaffId}
           onChange={(staffId, staff) => { setSelectedStaffId(staffId); setSelectedStaff(staff); }}
           previousStaffId={previousStaffId}
+          salonId={salonId || undefined}
         />
 
         {nominationFee > 0 && (
