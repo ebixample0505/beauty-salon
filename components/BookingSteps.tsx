@@ -18,9 +18,9 @@ export default function BookingSteps({ current }: Props) {
                 <div
                   className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                     isDone
-                      ? 'bg-blue-500 text-white'
+                      ? 'bg-main text-gray-700'
                       : isCurrent
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-accent text-white'
                       : 'bg-gray-200 text-gray-400'
                   }`}
                 >
@@ -28,14 +28,14 @@ export default function BookingSteps({ current }: Props) {
                 </div>
                 <span
                   className={`text-[10px] mt-1 whitespace-nowrap ${
-                    isCurrent ? 'text-blue-600 font-bold' : isDone ? 'text-blue-500' : 'text-gray-400'
+                    isCurrent ? 'text-accent font-bold' : isDone ? 'text-gray-500' : 'text-gray-400'
                   }`}
                 >
                   {label}
                 </span>
               </div>
               {i < STEPS.length - 1 && (
-                <div className={`flex-1 h-0.5 mb-4 mx-1 ${isDone ? 'bg-blue-500' : 'bg-gray-200'}`} />
+                <div className={`flex-1 h-0.5 mb-4 mx-1 ${isDone ? 'bg-accent' : 'bg-gray-200'}`} />
               )}
             </div>
           );

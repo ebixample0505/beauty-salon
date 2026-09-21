@@ -78,9 +78,9 @@ export default function SalonListPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* ヘッダー */}
-      <div className="bg-blue-600 text-white p-4 sticky top-0 z-10">
+      <div className="bg-main text-gray-800 p-4 sticky top-0 z-10">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-xl font-bold">BeautySalon</h1>
           <span className="text-sm">{userName}さん</span>
@@ -104,7 +104,7 @@ export default function SalonListPage() {
               onClick={() => setSelectedArea(area)}
               className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-bold border cursor-pointer transition-colors ${
                 selectedArea === area
-                  ? 'bg-blue-600 text-white border-blue-600'
+                  ? 'bg-main text-gray-800 border-main'
                   : 'bg-white text-gray-600 border-gray-300'
               }`}
             >
@@ -124,7 +124,7 @@ export default function SalonListPage() {
               onClick={() => setSelectedGenre(genre)}
               className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-bold border cursor-pointer transition-colors ${
                 selectedGenre === genre
-                  ? 'bg-pink-500 text-white border-pink-500'
+                  ? 'bg-accent text-white border-accent'
                   : 'bg-white text-gray-600 border-gray-300'
               }`}
             >
@@ -144,7 +144,7 @@ export default function SalonListPage() {
             <p className="text-gray-500">条件に合う店舗が見つかりません</p>
             <button
               onClick={() => { setSelectedArea('すべて'); setSelectedGenre('すべて'); setSearchText(''); }}
-              className="mt-4 text-blue-600 text-sm underline cursor-pointer"
+              className="mt-4 text-accent text-sm underline cursor-pointer"
             >
               フィルターをリセット
             </button>
@@ -157,8 +157,8 @@ export default function SalonListPage() {
                 {salon.imageUrl ? (
                   <img src={salon.imageUrl} alt={salon.name} className="w-full h-44 object-cover" />
                 ) : (
-                  <div className="w-full h-44 bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center">
-                    <span className="text-blue-300 text-6xl">✂</span>
+                  <div className="w-full h-44 bg-gradient-to-br from-main to-main-light flex items-center justify-center">
+                    <span className="text-accent/40 text-6xl">✂</span>
                   </div>
                 )}
                 <div className="p-4">
@@ -181,7 +181,7 @@ export default function SalonListPage() {
 
                   <div className="flex flex-wrap gap-1 mt-2">
                     {salon.area && (
-                      <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full font-bold">
+                      <span className="text-xs bg-main text-gray-700 px-2 py-1 rounded-full font-bold">
                         {salon.area}
                       </span>
                     )}
@@ -207,13 +207,13 @@ export default function SalonListPage() {
                   <div className="flex gap-2 mt-4">
                     <button
                       onClick={() => router.push(`/salon/${salon.id}`)}
-                      className="flex-1 border border-blue-600 text-blue-600 rounded-xl py-2.5 font-bold text-sm cursor-pointer"
+                      className="flex-1 border border-accent text-accent rounded-xl py-2.5 font-bold text-sm cursor-pointer"
                     >
                       詳細を見る
                     </button>
                     <button
                       onClick={() => router.push(`/menu?salonId=${salon.id}`)}
-                      className="flex-1 bg-blue-600 text-white rounded-xl py-2.5 font-bold text-sm cursor-pointer"
+                      className="flex-1 bg-accent text-white rounded-xl py-2.5 font-bold text-sm cursor-pointer"
                     >
                       予約する
                     </button>
@@ -227,7 +227,7 @@ export default function SalonListPage() {
         <div className="mt-6 space-y-3">
           <button
             onClick={() => router.push('/mypage')}
-            className="w-full border border-blue-600 text-blue-600 rounded-xl p-4 font-bold cursor-pointer"
+            className="w-full border border-accent text-accent rounded-xl p-4 font-bold cursor-pointer"
           >
             予約確認・キャンセル
           </button>

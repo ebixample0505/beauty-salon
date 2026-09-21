@@ -108,11 +108,11 @@ function ProfileContent() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-blue-600 text-white p-6">
+    <div className="min-h-screen bg-white">
+      <div className="bg-main text-gray-800 p-6">
         <button onClick={() => router.back()} className="text-sm mb-2 cursor-pointer">← 戻る</button>
         <h1 className="text-xl font-bold">{editCustomer ? 'お客様情報の修正' : 'お客様情報の入力'}</h1>
-        <p className="text-sm mt-1 text-blue-100">{editCustomer ? 'ご予約内容に合わせて情報を更新できます' : '初回のみ入力が必要です'}</p>
+        <p className="text-sm mt-1 text-gray-600">{editCustomer ? 'ご予約内容に合わせて情報を更新できます' : '初回のみ入力が必要です'}</p>
       </div>
 
       <BookingSteps current={4} />
@@ -168,7 +168,7 @@ function ProfileContent() {
 
         <button
           onClick={handleNext}
-          className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg cursor-pointer"
+          className="w-full bg-accent text-white rounded-xl p-4 font-bold text-lg cursor-pointer"
         >
           {editCustomer ? '修正を保存して確認へ' : '次へ（予約確認）'}
         </button>

@@ -48,8 +48,8 @@ function MenuContent() {
   }, [salonId, router]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-blue-600 text-white p-6">
+    <div className="min-h-screen bg-white">
+      <div className="bg-main text-gray-800 p-6">
         <button
           onClick={() => router.push(`/salon/${salonId}`)}
           className="text-sm mb-2 cursor-pointer opacity-80"
@@ -62,8 +62,8 @@ function MenuContent() {
       {/* ステップ表示 */}
       <div className="bg-white border-b px-4 py-3">
         <div className="flex items-center gap-1 text-xs">
-          <span className="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center font-bold shrink-0">1</span>
-          <span className="text-blue-600 font-bold">メニュー</span>
+          <span className="bg-accent text-white rounded-full w-5 h-5 flex items-center justify-center font-bold shrink-0">1</span>
+          <span className="text-accent font-bold">メニュー</span>
           <span className="text-gray-300 mx-1">›</span>
           <span className="text-gray-300">2 スタイリスト</span>
           <span className="text-gray-300 mx-1">›</span>
@@ -96,7 +96,7 @@ function MenuContent() {
                   <p className="text-sm text-gray-500 mt-1">{menu.time}</p>
                 </div>
                 <div className="text-right shrink-0 ml-3">
-                  <p className="text-blue-600 font-bold">{menu.price}</p>
+                  <p className="text-accent font-bold">{menu.price}</p>
                   <p className="text-gray-400 text-xs">›</p>
                 </div>
               </button>

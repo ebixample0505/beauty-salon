@@ -130,8 +130,8 @@ function ConfirmContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-blue-600 text-white p-6">
+    <div className="min-h-screen bg-white">
+      <div className="bg-main text-gray-800 p-6">
         <button onClick={() => router.back()} className="text-sm mb-2 cursor-pointer">← 戻る</button>
         <h1 className="text-xl font-bold">予約内容の確認</h1>
       </div>
@@ -184,7 +184,7 @@ function ConfirmContent() {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">料金</span>
-              <span className="font-bold text-blue-600 text-lg">{price}</span>
+              <span className="font-bold text-accent text-lg">{price}</span>
             </div>
           </div>
         </div>
@@ -194,7 +194,7 @@ function ConfirmContent() {
           <div className="bg-white rounded-xl shadow p-6 mb-6">
             <h2 className="font-bold text-lg mb-3 text-gray-700">ポイントを利用する</h2>
             <p className="text-sm text-gray-500 mb-3">
-              保有ポイント：<span className="font-bold text-blue-600">{pointsBalance}pt</span>
+              保有ポイント：<span className="font-bold text-accent">{pointsBalance}pt</span>
             </p>
             <div className="flex items-center gap-2 mb-2">
               <input
@@ -209,7 +209,7 @@ function ConfirmContent() {
               <span className="text-gray-500 font-bold">pt 利用</span>
               <button
                 onClick={() => setPointsToUse(String(maxUsablePoints))}
-                className="text-xs text-blue-600 font-bold border border-blue-600 rounded-lg px-2 py-1 cursor-pointer"
+                className="text-xs text-accent font-bold border border-accent rounded-lg px-2 py-1 cursor-pointer"
               >
                 全部使う
               </button>
@@ -218,11 +218,11 @@ function ConfirmContent() {
               最大{maxUsablePoints}ptまで利用できます（1pt = 1円）
             </p>
             {pointsToUseNum > 0 && (
-              <div className="bg-blue-50 rounded-lg p-3 flex justify-between items-center">
+              <div className="bg-main-light rounded-lg p-3 flex justify-between items-center">
                 <span className="text-sm text-gray-600">お支払い予定額</span>
                 <div className="text-right">
                   <span className="text-sm text-gray-400 line-through mr-2">{price}</span>
-                  <span className="font-bold text-blue-600 text-lg">¥{discountedPrice.toLocaleString()}</span>
+                  <span className="font-bold text-accent text-lg">¥{discountedPrice.toLocaleString()}</span>
                 </div>
               </div>
             )}
@@ -239,7 +239,7 @@ function ConfirmContent() {
         <button
           onClick={handleConfirm}
           disabled={loading}
-          className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg disabled:opacity-50 cursor-pointer"
+          className="w-full bg-accent text-white rounded-xl p-4 font-bold text-lg disabled:opacity-50 cursor-pointer"
         >
           {loading ? '処理中...' : '予約を確定する'}
         </button>

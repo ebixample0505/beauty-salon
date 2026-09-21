@@ -93,14 +93,14 @@ export default function SalonDetailPage() {
   if (!salon) return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-4">
       <p className="text-gray-500">店舗が見つかりません</p>
-      <button onClick={() => router.push('/')} className="text-blue-600 underline cursor-pointer">
+      <button onClick={() => router.push('/')} className="text-accent underline cursor-pointer">
         店舗一覧へ戻る
       </button>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-white pb-24">
       {/* ヘッダー画像 */}
       {salon.imageUrl ? (
         <div className="relative">
@@ -113,7 +113,7 @@ export default function SalonDetailPage() {
           </button>
         </div>
       ) : (
-        <div className="bg-blue-600 text-white p-6 relative">
+        <div className="bg-main text-gray-800 p-6 relative">
           <button onClick={() => router.push('/')} className="text-sm mb-3 cursor-pointer opacity-80">
             ← 店舗一覧
           </button>
@@ -123,7 +123,7 @@ export default function SalonDetailPage() {
       {/* 店舗基本情報 */}
       <div className="bg-white p-4 shadow-sm">
         {!salon.imageUrl && (
-          <button onClick={() => router.push('/')} className="text-sm text-blue-600 mb-2 cursor-pointer block">
+          <button onClick={() => router.push('/')} className="text-sm text-accent mb-2 cursor-pointer block">
             ← 店舗一覧
           </button>
         )}
@@ -132,7 +132,7 @@ export default function SalonDetailPage() {
 
         <div className="flex flex-wrap gap-1 mt-2">
           {salon.area && (
-            <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full font-bold">
+            <span className="text-xs bg-main text-gray-700 px-2 py-1 rounded-full font-bold">
               {salon.area}
             </span>
           )}
@@ -161,7 +161,7 @@ export default function SalonDetailPage() {
             onClick={() => setActiveTab(tab)}
             className={`flex-1 py-3 text-sm font-bold cursor-pointer border-b-2 transition-colors ${
               activeTab === tab
-                ? 'border-blue-600 text-blue-600'
+                ? 'border-accent text-accent'
                 : 'border-transparent text-gray-500'
             }`}
           >
@@ -203,7 +203,7 @@ export default function SalonDetailPage() {
               {salon.phone && (
                 <div className="flex gap-3 text-sm">
                   <span className="text-gray-400 shrink-0">電話</span>
-                  <a href={`tel:${salon.phone}`} className="text-blue-600">{salon.phone}</a>
+                  <a href={`tel:${salon.phone}`} className="text-accent">{salon.phone}</a>
                 </div>
               )}
             </div>
@@ -230,7 +230,7 @@ export default function SalonDetailPage() {
                     <p className="text-sm text-gray-500 mt-1">{menu.time}</p>
                   </div>
                   <div className="text-right shrink-0 ml-3">
-                    <p className="text-blue-600 font-bold">{menu.price}</p>
+                    <p className="text-accent font-bold">{menu.price}</p>
                   </div>
                 </button>
               ))
@@ -269,7 +269,7 @@ export default function SalonDetailPage() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
         <button
           onClick={() => router.push(`/menu?salonId=${salonId}`)}
-          className="w-full bg-blue-600 text-white rounded-xl py-4 font-bold text-lg cursor-pointer"
+          className="w-full bg-accent text-white rounded-xl py-4 font-bold text-lg cursor-pointer"
         >
           この店舗を予約する
         </button>
