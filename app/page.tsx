@@ -21,16 +21,11 @@ type Salon = {
   order: number;
 };
 
-const AREAS = ['すべて', '渋谷', '新宿', '銀座', '表参道', '池袋', '原宿', '恵比寿', '六本木'];
-const GENRES = ['すべて', 'カット', 'カラー', 'パーマ', 'トリートメント', 'ヘッドスパ', '縮毛矯正'];
-
 export default function SalonListPage() {
   const router = useRouter();
   const [userName, setUserName] = useState('');
   const [salons, setSalons] = useState<Salon[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedArea, setSelectedArea] = useState('すべて');
-  const [selectedGenre, setSelectedGenre] = useState('すべて');
   const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
@@ -59,6 +54,7 @@ export default function SalonListPage() {
         const snapshot = await getDocs(q);
         const data = snapshot.docs
           .map(d => ({ id: d.id, ...d.data() }) as Salon)
+          .filter(s => (s.genres || []).includes('縮毛矯正'))
           .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         setSalons(data);
       } catch (e) {
@@ -70,19 +66,19 @@ export default function SalonListPage() {
     fetchSalons();
   }, []);
 
-  const filtered = salons.filter(s => {
-    const areaMatch = selectedArea === 'すべて' || s.area === selectedArea;
-    const genreMatch = selectedGenre === 'すべて' || (s.genres || []).includes(selectedGenre);
-    const textMatch = !searchText || s.name.includes(searchText) || (s.address || '').includes(searchText);
-    return areaMatch && genreMatch && textMatch;
-  });
+  const filtered = salons.filter(s =>
+    !searchText || s.name.includes(searchText) || (s.address || '').includes(searchText)
+  );
 
   return (
     <div className="min-h-screen bg-white">
       {/* ヘッダー */}
       <div className="bg-main text-gray-800 p-4 sticky top-0 z-10">
         <div className="flex items-center justify-between mb-3">
-          <h1 className="text-xl font-bold">BeautySalon</h1>
+          <div>
+            <h1 className="text-xl font-bold">メンズ縮毛矯正</h1>
+            <p className="text-xs text-gray-600 mt-0.5">専門サロン一覧</p>
+          </div>
           <span className="text-sm">{userName}さん</span>
         </div>
         <input
@@ -94,46 +90,6 @@ export default function SalonListPage() {
         />
       </div>
 
-      {/* エリアフィルター */}
-      <div className="bg-white border-b px-2 pt-2 pb-1">
-        <p className="text-xs text-gray-500 px-2 mb-1 font-bold">エリア</p>
-        <div className="flex gap-2 overflow-x-auto pb-2 px-1">
-          {AREAS.map(area => (
-            <button
-              key={area}
-              onClick={() => setSelectedArea(area)}
-              className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-bold border cursor-pointer transition-colors ${
-                selectedArea === area
-                  ? 'bg-main text-gray-800 border-main'
-                  : 'bg-white text-gray-600 border-gray-300'
-              }`}
-            >
-              {area}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ジャンルフィルター */}
-      <div className="bg-white border-b px-2 pt-2 pb-1">
-        <p className="text-xs text-gray-500 px-2 mb-1 font-bold">ジャンル</p>
-        <div className="flex gap-2 overflow-x-auto pb-2 px-1">
-          {GENRES.map(genre => (
-            <button
-              key={genre}
-              onClick={() => setSelectedGenre(genre)}
-              className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-bold border cursor-pointer transition-colors ${
-                selectedGenre === genre
-                  ? 'bg-accent text-white border-accent'
-                  : 'bg-white text-gray-600 border-gray-300'
-              }`}
-            >
-              {genre}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* 店舗一覧 */}
       <div className="p-4">
         {loading ? (
@@ -141,13 +97,17 @@ export default function SalonListPage() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-gray-400 text-4xl mb-4">✂</p>
-            <p className="text-gray-500">条件に合う店舗が見つかりません</p>
-            <button
-              onClick={() => { setSelectedArea('すべて'); setSelectedGenre('すべて'); setSearchText(''); }}
-              className="mt-4 text-accent text-sm underline cursor-pointer"
-            >
-              フィルターをリセット
-            </button>
+            <p className="text-gray-500">
+              {searchText ? '条件に合う店舗が見つかりません' : '現在ご案内できる店舗がありません'}
+            </p>
+            {searchText && (
+              <button
+                onClick={() => setSearchText('')}
+                className="mt-4 text-accent text-sm underline cursor-pointer"
+              >
+                検索をリセット
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -179,18 +139,13 @@ export default function SalonListPage() {
                     )}
                   </div>
 
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {salon.area && (
+                  {salon.area && (
+                    <div className="mt-2">
                       <span className="text-xs bg-main text-gray-700 px-2 py-1 rounded-full font-bold">
                         {salon.area}
                       </span>
-                    )}
-                    {(salon.genres || []).map(g => (
-                      <span key={g} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                        {g}
-                      </span>
-                    ))}
-                  </div>
+                    </div>
+                  )}
 
                   <div className="mt-2 space-y-0.5">
                     {salon.address && (
