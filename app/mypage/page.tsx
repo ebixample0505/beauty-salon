@@ -129,7 +129,7 @@ export default function MyPage() {
         >
           キャンセルする
         </button>
-      )}}
+      )}
     </div>
   );
 

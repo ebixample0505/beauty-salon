@@ -28,6 +28,7 @@ function ConfirmContent() {
   const email = searchParams.get('email') || '';
   const staffId = searchParams.get('staffId') || '';
   const staffName = searchParams.get('staffName') || 'お任せ';
+  const nominationFee = searchParams.get('nominationFee') || '0';
   const webUserId = searchParams.get('webUserId') || '';
 
   const priceNum = parsePriceToNumber(price);
