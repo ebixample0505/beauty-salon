@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import liff from '@line/liff';
+import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 
 type Salon = {
   id: string;
@@ -88,6 +89,20 @@ const REGIONS: RegionInfo[] = [
   },
 ];
 
+const GEO_URL = 'https://raw.githubusercontent.com/dataofjapan/land/master/japan.topojson';
+
+const PREF_TO_REGION: Record<string, string> = {
+  '北海道': '北海道',
+  '青森県': '東北', '岩手県': '東北', '宮城県': '東北', '秋田県': '東北', '山形県': '東北', '福島県': '東北',
+  '茨城県': '関東', '栃木県': '関東', '群馬県': '関東', '埼玉県': '関東', '千葉県': '関東', '東京都': '関東', '神奈川県': '関東',
+  '新潟県': '北信越', '富山県': '北信越', '石川県': '北信越', '福井県': '北信越', '山梨県': '北信越', '長野県': '北信越',
+  '岐阜県': '東海', '静岡県': '東海', '愛知県': '東海', '三重県': '東海',
+  '滋賀県': '関西', '京都府': '関西', '大阪府': '関西', '兵庫県': '関西', '奈良県': '関西', '和歌山県': '関西',
+  '鳥取県': '中国', '島根県': '中国', '岡山県': '中国', '広島県': '中国', '山口県': '中国',
+  '徳島県': '四国', '香川県': '四国', '愛媛県': '四国', '高知県': '四国',
+  '福岡県': '九州', '佐賀県': '九州', '長崎県': '九州', '熊本県': '九州', '大分県': '九州', '宮崎県': '九州', '鹿児島県': '九州', '沖縄県': '九州',
+};
+
 const LEFT_NAMES  = ['中国', '関西', '九州'];
 const RIGHT_NAMES = ['北海道', '東北', '関東'];
 const TOP_NAME    = '北信越';
@@ -125,7 +140,7 @@ function RegionCard({
 }
 
 function JapanMap({
-  regions, selected, active, onRegionClick,
+  selected, active, onRegionClick,
 }: {
   regions: RegionInfo[];
   selected: string | null;
@@ -133,34 +148,34 @@ function JapanMap({
   onRegionClick: (name: string) => void;
 }) {
   return (
-    <svg viewBox="0 0 300 290" className="w-full h-auto">
-      {regions.map(r => {
-        const isSelected = selected === r.name;
-        const hasData = active.has(r.name);
-        const fill = isSelected ? '#00838f' : hasData ? '#80cbc4' : '#bdbdbd';
-        const textFill = isSelected ? '#fff' : hasData ? '#004d40' : '#9e9e9e';
-        const fs = r.fs ?? 8;
-        return (
-          <g
-            key={r.name}
-            onClick={() => hasData && onRegionClick(r.name)}
-            className={hasData ? 'cursor-pointer' : ''}
-          >
-            <path d={r.path} fill={fill} stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
-            <text
-              x={r.lx} y={r.ly}
-              textAnchor="middle"
-              fontSize={fs}
-              fontWeight="bold"
-              fill={textFill}
-              style={{ pointerEvents: 'none' }}
-            >
-              {r.name}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
+    <ComposableMap
+      projection="geoMercator"
+      projectionConfig={{ scale: 1700, center: [137, 37] }}
+      width={300}
+      height={320}
+      style={{ width: '100%', height: 'auto' }}
+    >
+      <Geographies geography={GEO_URL}>
+        {({ geographies }) =>
+          geographies.map(geo => {
+            const prefName: string = (geo.properties?.nam_ja as string) || '';
+            const regionName = PREF_TO_REGION[prefName];
+            const isSelected = selected === regionName;
+            const hasData = regionName ? active.has(regionName) : false;
+            return (
+              <Geography
+                key={geo.rsmKey}
+                geography={geo}
+                fill={isSelected ? '#00838f' : hasData ? '#80cbc4' : '#bdbdbd'}
+                stroke="#fff"
+                strokeWidth={0.5}
+                onClick={() => regionName && hasData && onRegionClick(regionName)}
+              />
+            );
+          })
+        }
+      </Geographies>
+    </ComposableMap>
   );
 }
 
