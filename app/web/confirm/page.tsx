@@ -5,16 +5,35 @@ import { db } from '@/lib/firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import { getCustomer } from '@/lib/customer';
 import BookingSteps from '@/components/BookingSteps';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardNumberElement, CardExpiryElement, CardCvcElement, useStripe, useElements } from '@stripe/react-stripe-js';
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 const parsePriceToNumber = (priceStr: string): number => {
   const digits = priceStr.replace(/[^0-9]/g, '');
   return digits ? parseInt(digits, 10) : 0;
 };
 
+const FIELD_STYLE = {
+  style: {
+    base: {
+      fontSize: '16px',
+      color: '#374151',
+      fontFamily: 'system-ui, sans-serif',
+      '::placeholder': { color: '#9ca3af' },
+    },
+    invalid: { color: '#ef4444' },
+  },
+};
+
 function ConfirmContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const stripe = useStripe();
+  const elements = useElements();
   const [loading, setLoading] = useState(false);
+  const [cardError, setCardError] = useState('');
   const [pointsBalance, setPointsBalance] = useState(0);
   const [pointsToUse, setPointsToUse] = useState('');
 
@@ -35,6 +54,7 @@ function ConfirmContent() {
   const maxUsablePoints = Math.min(pointsBalance, priceNum);
   const pointsToUseNum = Math.min(Math.max(parseInt(pointsToUse || '0', 10) || 0, 0), maxUsablePoints);
   const discountedPrice = priceNum - pointsToUseNum;
+  const needsPayment = discountedPrice > 0;
 
   const handleEditCustomer = () => {
     router.push(
@@ -51,53 +71,113 @@ function ConfirmContent() {
     init();
   }, [webUserId]);
 
+  const saveBookingAndComplete = async (paymentIntentId: string | null) => {
+    const docRef = await addDoc(collection(db, 'bookings'), {
+      lineUserId: webUserId,
+      name,
+      phone,
+      email,
+      menu,
+      date,
+      slot,
+      price,
+      time,
+      staffId,
+      staffName,
+      pointsRequested: pointsToUseNum,
+      discountedPrice,
+      paidAmount: discountedPrice,
+      stripePaymentIntentId: paymentIntentId,
+      status: 'confirmed',
+      channel: 'web',
+      createdAt: new Date(),
+    });
+
+    try {
+      await fetch('/api/send-confirmation-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: email,
+          name,
+          menu,
+          staffName,
+          date,
+          slot,
+          price: discountedPrice > 0 ? `¥${discountedPrice.toLocaleString()}` : price,
+        }),
+      });
+    } catch (e) {
+      console.log('メール送信エラー:', e);
+    }
+
+    router.push(
+      `/web/complete?menu=${encodeURIComponent(menu)}&time=${encodeURIComponent(time)}&price=${encodeURIComponent(price)}&date=${date}&slot=${slot}&staffName=${encodeURIComponent(staffName)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&bookingId=${docRef.id}&finalAmount=${discountedPrice}&webUserId=${webUserId}`
+    );
+  };
+
   const handleConfirm = async () => {
     setLoading(true);
-    try {
-      const docRef = await addDoc(collection(db, 'bookings'), {
-        lineUserId: webUserId,
-        name,
-        phone,
-        email,
-        menu,
-        date,
-        slot,
-        price,
-        time,
-        staffId,
-        staffName,
-        pointsRequested: pointsToUseNum,
-        discountedPrice,
-        status: 'confirmed',
-        channel: 'web',
-        createdAt: new Date(),
-      });
+    setCardError('');
 
-      // 予約確認メールを送信
-      try {
-        await fetch('/api/send-confirmation-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: email,
-            name,
-            menu,
-            staffName,
-            date,
-            slot,
-            price: discountedPrice > 0 ? `¥${discountedPrice.toLocaleString()}` : price,
-          }),
-        });
-      } catch (e) {
-        console.log('メール送信エラー:', e);
+    try {
+      // ポイントで全額カバーする場合はStripe不要
+      if (!needsPayment) {
+        await saveBookingAndComplete(null);
+        return;
       }
 
-      router.push(
-        `/web/complete?menu=${encodeURIComponent(menu)}&time=${encodeURIComponent(time)}&price=${encodeURIComponent(price)}&date=${date}&slot=${slot}&staffName=${encodeURIComponent(staffName)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&bookingId=${docRef.id}&finalAmount=${discountedPrice}&webUserId=${webUserId}`
-      );
-    } catch (e) {
-      console.error('保存エラー:', e);
-      alert('保存に失敗しました。もう一度お試しください。');
+      // PaymentIntentを作成
+      const res = await fetch('/api/stripe/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: discountedPrice,
+          name,
+          email,
+          phone,
+          menu,
+          date,
+          slot,
+          staffId,
+          staffName,
+          time,
+          webUserId,
+          pointsToUse: pointsToUseNum,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || '決済の準備に失敗しました');
+      }
+
+      const { clientSecret } = await res.json();
+
+      const cardNumberElement = elements?.getElement(CardNumberElement);
+      if (!stripe || !cardNumberElement) {
+        throw new Error('Stripeの読み込みに失敗しました。ページを再読み込みしてください。');
+      }
+
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardNumberElement,
+          billing_details: { name, email },
+        },
+      });
+
+      if (error) {
+        setCardError(error.message || '決済に失敗しました。カード情報を確認してください。');
+        return;
+      }
+
+      if (paymentIntent?.status === 'succeeded') {
+        await saveBookingAndComplete(paymentIntent.id);
+      }
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : '決済に失敗しました。もう一度お試しください。';
+      console.error('決済エラー:', e);
+      setCardError(message);
     } finally {
       setLoading(false);
     }
@@ -191,14 +271,56 @@ function ConfirmContent() {
           </div>
         )}
 
+        {needsPayment && (
+          <div className="bg-white rounded-xl shadow p-6 mb-6">
+            <h2 className="font-bold text-lg mb-1 text-gray-700">クレジットカード情報</h2>
+            <p className="text-xs text-gray-400 mb-4">Stripeにより安全に処理されます</p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm text-gray-500 mb-1">カード番号</label>
+                <div className="border rounded-lg p-3 bg-gray-50">
+                  <CardNumberElement options={FIELD_STYLE} />
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="block text-sm text-gray-500 mb-1">有効期限（月/年）</label>
+                  <div className="border rounded-lg p-3 bg-gray-50">
+                    <CardExpiryElement options={FIELD_STYLE} />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm text-gray-500 mb-1">CVC</label>
+                  <div className="border rounded-lg p-3 bg-gray-50">
+                    <CardCvcElement options={FIELD_STYLE} />
+                  </div>
+                </div>
+              </div>
+            </div>
+            {cardError && (
+              <p className="mt-3 text-sm text-red-500">{cardError}</p>
+            )}
+            <div className="flex items-center gap-2 mt-3">
+              <span className="text-xs text-gray-400">🔒 SSL暗号化による安全な決済</span>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-blue-50 rounded-xl p-4 mb-4 flex justify-between items-center">
+          <span className="font-bold text-gray-700">お支払い金額</span>
+          <span className="font-bold text-blue-600 text-xl">
+            {needsPayment ? `¥${discountedPrice.toLocaleString()}` : '¥0（ポイント全額利用）'}
+          </span>
+        </div>
+
         <p className="text-sm text-gray-500 text-center mb-4">上記の内容で予約を確定します</p>
 
         <button
           onClick={handleConfirm}
-          disabled={loading}
+          disabled={loading || (needsPayment && !stripe)}
           className="w-full bg-blue-600 text-white rounded-xl p-4 font-bold text-lg disabled:opacity-50 cursor-pointer"
         >
-          {loading ? '処理中...' : '予約を確定する'}
+          {loading ? '処理中...' : needsPayment ? '予約・お支払いを確定する' : '予約を確定する'}
         </button>
 
         <button
@@ -215,7 +337,9 @@ function ConfirmContent() {
 export default function ConfirmPage() {
   return (
     <Suspense>
-      <ConfirmContent />
+      <Elements stripe={stripePromise}>
+        <ConfirmContent />
+      </Elements>
     </Suspense>
   );
 }
