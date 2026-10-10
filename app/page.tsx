@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import liff from '@line/liff';
-import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
+import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
 
 type Salon = {
   id: string;
@@ -26,66 +26,64 @@ type RegionInfo = {
   name: string;
   prefs: string[];
   areas: string[];
-  path: string;
-  lx: number;
-  ly: number;
-  fs?: number;
+  lat: number;
+  lng: number;
 };
 
 const REGIONS: RegionInfo[] = [
   {
-    name: '北海道', prefs: ['北海道'],
+    name: '北海道',
+    prefs: ['北海道'],
     areas: ['北海道', '札幌'],
-    path: 'M190,15 C215,8 245,12 258,28 C263,42 255,55 238,61 C221,67 200,62 190,51 C179,40 179,27 190,15 Z',
-    lx: 224, ly: 40,
+    lat: 43.5, lng: 142.5,
   },
   {
-    name: '東北', prefs: ['青森', '秋田', '岩手', '山形', '宮城', '福島'],
+    name: '東北',
+    prefs: ['青森', '岩手', '宮城', '秋田', '山形', '福島'],
     areas: ['東北', '仙台', '青森', '秋田', '盛岡', '山形', '福島', '宮城', '岩手'],
-    path: 'M195,64 L220,60 L228,93 L219,128 L200,135 L182,124 L180,93 Z',
-    lx: 208, ly: 100,
+    lat: 39.2, lng: 140.8,
   },
   {
-    name: '北信越', prefs: ['富山', '新潟', '石川', '長野', '福井', '山梨'],
-    areas: ['北信越', '長野', '新潟', '富山', '石川', '金沢', '福井', '山梨'],
-    path: 'M158,128 L185,122 L190,153 L174,171 L149,169 L137,151 L147,132 Z',
-    lx: 161, ly: 150, fs: 7,
-  },
-  {
-    name: '関東', prefs: ['東京', '茨城', '神奈川', '栃木', '千葉', '群馬', '埼玉'],
+    name: '関東',
+    prefs: ['東京', '神奈川', '埼玉', '千葉', '茨城', '栃木', '群馬'],
     areas: ['関東', '東京', '渋谷', '新宿', '銀座', '表参道', '池袋', '原宿', '恵比寿', '六本木', '横浜', '埼玉', '千葉', '茨城', '栃木', '群馬', '神奈川'],
-    path: 'M188,132 L218,128 L226,159 L210,176 L188,173 L177,153 Z',
-    lx: 205, ly: 155,
+    lat: 36.0, lng: 139.8,
   },
   {
-    name: '東海', prefs: ['愛知', '静岡', '岐阜', '三重'],
+    name: '北信越',
+    prefs: ['新潟', '富山', '石川', '福井', '山梨', '長野'],
+    areas: ['北信越', '長野', '新潟', '富山', '石川', '金沢', '福井', '山梨'],
+    lat: 37.2, lng: 137.5,
+  },
+  {
+    name: '東海',
+    prefs: ['愛知', '静岡', '岐阜', '三重'],
     areas: ['東海', '名古屋', '静岡', '愛知', '岐阜', '三重'],
-    path: 'M174,176 L210,173 L216,201 L198,219 L169,217 L161,196 Z',
-    lx: 191, ly: 199,
+    lat: 35.0, lng: 137.2,
   },
   {
-    name: '関西', prefs: ['京都', '大阪', '奈良', '滋賀', '兵庫', '和歌山'],
+    name: '関西',
+    prefs: ['大阪', '兵庫', '京都', '滋賀', '奈良', '和歌山'],
     areas: ['関西', '大阪', '京都', '神戸', '梅田', '奈良', '滋賀', '和歌山', '兵庫'],
-    path: 'M136,176 L172,172 L178,199 L161,219 L134,221 L117,206 L124,183 Z',
-    lx: 148, ly: 201,
+    lat: 34.7, lng: 135.5,
   },
   {
-    name: '中国', prefs: ['広島', '鳥取', '山口', '島根', '岡山'],
+    name: '中国',
+    prefs: ['広島', '岡山', '鳥取', '島根', '山口'],
     areas: ['中国', '広島', '岡山', '鳥取', '島根', '山口'],
-    path: 'M96,203 L137,199 L144,223 L127,243 L97,245 L79,229 L85,212 Z',
-    lx: 113, ly: 226,
+    lat: 34.7, lng: 133.0,
   },
   {
-    name: '四国', prefs: ['徳島', '愛媛', '香川', '高知'],
+    name: '四国',
+    prefs: ['徳島', '香川', '愛媛', '高知'],
     areas: ['四国', '松山', '高松', '徳島', '高知', '愛媛', '香川'],
-    path: 'M134,249 L178,244 L183,267 L162,277 L137,276 L124,261 Z',
-    lx: 155, ly: 264,
+    lat: 33.6, lng: 133.5,
   },
   {
-    name: '九州', prefs: ['福岡', '宮崎', '佐賀', '鹿児島', '長崎', '沖縄', '熊本', '大分'],
+    name: '九州・沖縄',
+    prefs: ['福岡', '佐賀', '長崎', '熊本', '大分', '宮崎', '鹿児島', '沖縄'],
     areas: ['九州', '沖縄', '福岡', '博多', '熊本', '鹿児島', '長崎', '大分', '宮崎', '佐賀'],
-    path: 'M60,204 L94,200 L102,229 L91,263 L67,273 L43,258 L47,229 Z',
-    lx: 73, ly: 235, fs: 7.5,
+    lat: 33.0, lng: 130.5,
   },
 ];
 
@@ -100,49 +98,13 @@ const PREF_TO_REGION: Record<string, string> = {
   '滋賀県': '関西', '京都府': '関西', '大阪府': '関西', '兵庫県': '関西', '奈良県': '関西', '和歌山県': '関西',
   '鳥取県': '中国', '島根県': '中国', '岡山県': '中国', '広島県': '中国', '山口県': '中国',
   '徳島県': '四国', '香川県': '四国', '愛媛県': '四国', '高知県': '四国',
-  '福岡県': '九州', '佐賀県': '九州', '長崎県': '九州', '熊本県': '九州', '大分県': '九州', '宮崎県': '九州', '鹿児島県': '九州', '沖縄県': '九州',
+  '福岡県': '九州・沖縄', '佐賀県': '九州・沖縄', '長崎県': '九州・沖縄', '熊本県': '九州・沖縄',
+  '大分県': '九州・沖縄', '宮崎県': '九州・沖縄', '鹿児島県': '九州・沖縄', '沖縄県': '九州・沖縄',
 };
-
-const LEFT_NAMES  = ['中国', '関西', '九州'];
-const RIGHT_NAMES = ['北海道', '東北', '関東'];
-const TOP_NAME    = '北信越';
-const BOTTOM_NAMES = ['四国', '東海'];
-
-function RegionCard({
-  region, isSelected, hasData, onSelect,
-}: {
-  region: RegionInfo;
-  isSelected: boolean;
-  hasData: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <div
-      onClick={() => hasData && onSelect()}
-      className={`rounded overflow-hidden select-none transition-all ${
-        hasData ? 'cursor-pointer' : 'opacity-40 cursor-default'
-      } ${isSelected ? 'ring-2 ring-accent shadow-md' : ''}`}
-    >
-      <div className={`text-center py-1.5 text-xs font-bold text-white ${
-        isSelected ? 'bg-accent' : 'bg-accent/80'
-      }`}>
-        {region.name}
-      </div>
-      <div className="grid grid-cols-2 gap-px bg-gray-200 border border-t-0 border-gray-200">
-        {region.prefs.map(p => (
-          <div key={p} className="bg-white text-center text-xs py-1 text-gray-700">
-            {p}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function JapanMap({
   selected, active, onRegionClick,
 }: {
-  regions: RegionInfo[];
   selected: string | null;
   active: Set<string>;
   onRegionClick: (name: string) => void;
@@ -175,6 +137,26 @@ function JapanMap({
           })
         }
       </Geographies>
+      {REGIONS.map(r => {
+        const isSelected = selected === r.name;
+        const hasData = active.has(r.name);
+        return (
+          <Marker key={r.name} coordinates={[r.lng, r.lat]}>
+            <text
+              textAnchor="middle"
+              style={{
+                fontSize: r.name === '九州・沖縄' ? '5.5px' : '7px',
+                fontWeight: 'bold',
+                fill: isSelected ? '#fff' : hasData ? '#b71c1c' : '#757575',
+                pointerEvents: 'none',
+                userSelect: 'none',
+              }}
+            >
+              {r.name}
+            </text>
+          </Marker>
+        );
+      })}
     </ComposableMap>
   );
 }
@@ -186,6 +168,7 @@ export default function SalonListPage() {
   const [salons, setSalons] = useState<Salon[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [selectedPref, setSelectedPref] = useState<string | null>(null);
   const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
@@ -230,19 +213,39 @@ export default function SalonListPage() {
   });
 
   const handleRegionClick = (name: string) => {
-    setSelectedRegion(prev => prev === name ? null : name);
+    if (selectedRegion === name) {
+      setSelectedRegion(null);
+      setSelectedPref(null);
+    } else {
+      setSelectedRegion(name);
+      setSelectedPref(null);
+    }
+    setSearchText('');
+    setTimeout(() => listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+  };
+
+  const handlePrefClick = (pref: string, regionName: string) => {
+    setSelectedRegion(regionName);
+    setSelectedPref(prev => prev === pref ? null : pref);
     setSearchText('');
     setTimeout(() => listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
   };
 
   const filtered = salons.filter(s => {
-    const r = REGIONS.find(reg => reg.name === selectedRegion);
-    const regionMatch = !selectedRegion || (r?.areas ?? []).includes(s.area);
+    let areaMatch = true;
+    if (selectedPref) {
+      const region = REGIONS.find(r => r.prefs.includes(selectedPref));
+      areaMatch = (region?.areas ?? []).some(a => (s.area || '').includes(a)) ||
+                  (s.address || '').includes(selectedPref);
+    } else if (selectedRegion) {
+      const r = REGIONS.find(reg => reg.name === selectedRegion);
+      areaMatch = (r?.areas ?? []).includes(s.area);
+    }
     const textMatch = !searchText || s.name.includes(searchText) || (s.address || '').includes(searchText);
-    return regionMatch && textMatch;
+    return areaMatch && textMatch;
   });
 
-  const findRegion = (name: string) => REGIONS.find(r => r.name === name)!;
+  const currentRegion = REGIONS.find(r => r.name === selectedRegion);
 
   return (
     <div className="min-h-screen bg-white">
@@ -259,109 +262,103 @@ export default function SalonListPage() {
 
       {/* エリア選択セクション */}
       <div className="p-4 border-b bg-white">
-        <h2 className="text-xl font-bold mb-1">サロンを探す</h2>
-        <p className="text-sm text-accent mb-4">
-          地域でいちばん縮毛矯正の上手なサロンを全国から集めています。<br className="hidden sm:block" />
-          ショート・ボブ・ロング・メンズもなりたいスタイルを叶えます。
-        </p>
+        <h2 className="text-xl font-bold mb-3">エリアからヘアサロンを探す</h2>
 
-        {/* ── デスクトップ: 3カラムレイアウト ── */}
-        <div className="hidden sm:grid grid-cols-[148px_1fr_148px] gap-3 items-start">
-          {/* 左列: 中国・関西・九州 */}
-          <div className="space-y-2">
-            {LEFT_NAMES.map(name => (
-              <RegionCard
-                key={name}
-                region={findRegion(name)}
-                isSelected={selectedRegion === name}
-                hasData={activeRegions.has(name)}
-                onSelect={() => handleRegionClick(name)}
-              />
-            ))}
-          </div>
+        {/* 地図 */}
+        <JapanMap
+          selected={selectedRegion}
+          active={activeRegions}
+          onRegionClick={handleRegionClick}
+        />
 
-          {/* 中央: 北信越（上）＋地図＋四国・東海（下） */}
-          <div>
-            <div className="flex justify-center mb-2">
-              <div className="w-36">
-                <RegionCard
-                  region={findRegion(TOP_NAME)}
-                  isSelected={selectedRegion === TOP_NAME}
-                  hasData={activeRegions.has(TOP_NAME)}
-                  onSelect={() => handleRegionClick(TOP_NAME)}
-                />
-              </div>
-            </div>
-            <JapanMap
-              regions={REGIONS}
-              selected={selectedRegion}
-              active={activeRegions}
-              onRegionClick={handleRegionClick}
-            />
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {BOTTOM_NAMES.map(name => (
-                <RegionCard
-                  key={name}
-                  region={findRegion(name)}
-                  isSelected={selectedRegion === name}
-                  hasData={activeRegions.has(name)}
-                  onSelect={() => handleRegionClick(name)}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* 右列: 北海道・東北・関東 */}
-          <div className="space-y-2">
-            {RIGHT_NAMES.map(name => (
-              <RegionCard
-                key={name}
-                region={findRegion(name)}
-                isSelected={selectedRegion === name}
-                hasData={activeRegions.has(name)}
-                onSelect={() => handleRegionClick(name)}
-              />
-            ))}
-          </div>
+        {/* 地域ボタン（モバイル用） */}
+        <div className="grid grid-cols-3 gap-1.5 mt-3 sm:hidden">
+          {REGIONS.map(r => (
+            <button
+              key={r.name}
+              onClick={() => activeRegions.has(r.name) && handleRegionClick(r.name)}
+              className={`rounded-lg py-1.5 px-1 text-xs font-bold text-center leading-tight transition-colors ${
+                selectedRegion === r.name
+                  ? 'bg-accent text-white'
+                  : activeRegions.has(r.name)
+                  ? 'bg-accent/15 text-accent'
+                  : 'bg-gray-100 text-gray-400 cursor-default'
+              }`}
+            >
+              {r.name}
+            </button>
+          ))}
         </div>
 
-        {/* ── モバイル: 地図＋3×3エリアボタン ── */}
-        <div className="sm:hidden">
-          <JapanMap
-            regions={REGIONS}
-            selected={selectedRegion}
-            active={activeRegions}
-            onRegionClick={handleRegionClick}
-          />
-          <div className="grid grid-cols-3 gap-2 mt-3">
-            {REGIONS.map(r => (
+        {/* 全地域×都道府県グリッド（デスクトップ） */}
+        <div className="hidden sm:block mt-4 border rounded-xl overflow-hidden">
+          {REGIONS.map(r => (
+            <div key={r.name} className="flex border-b last:border-b-0">
               <button
-                key={r.name}
                 onClick={() => activeRegions.has(r.name) && handleRegionClick(r.name)}
-                className={`rounded-lg py-2 px-1 text-xs font-bold text-center transition-colors ${
+                className={`w-24 shrink-0 py-3 text-xs font-bold text-center border-r transition-colors ${
                   selectedRegion === r.name
                     ? 'bg-accent text-white'
                     : activeRegions.has(r.name)
-                    ? 'bg-accent/15 text-accent'
-                    : 'bg-gray-100 text-gray-400 cursor-default'
+                    ? 'bg-accent/10 text-accent hover:bg-accent/20'
+                    : 'bg-gray-50 text-gray-400 cursor-default'
                 }`}
               >
                 {r.name}
               </button>
-            ))}
-          </div>
+              <div className="flex flex-wrap gap-1.5 p-2 items-center">
+                {r.prefs.map(p => (
+                  <button
+                    key={p}
+                    onClick={() => activeRegions.has(r.name) && handlePrefClick(p, r.name)}
+                    className={`rounded px-2.5 py-1 text-xs font-bold border transition-colors ${
+                      selectedPref === p
+                        ? 'bg-accent text-white border-accent'
+                        : activeRegions.has(r.name)
+                        ? 'border-accent/40 text-accent hover:bg-accent/10 cursor-pointer'
+                        : 'border-gray-200 text-gray-400 cursor-default'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* 選択中エリア表示 */}
-        {selectedRegion && (
-          <div className="flex items-center justify-between mt-3 px-3 py-2 bg-main-light rounded-lg">
-            <p className="text-sm font-bold text-accent">📍 {selectedRegion}</p>
-            <button
-              onClick={() => setSelectedRegion(null)}
-              className="text-xs text-gray-500 underline cursor-pointer"
-            >
-              解除
-            </button>
+        {/* 選択中エリア → 都道府県ボタン（モバイル） */}
+        {selectedRegion && currentRegion && (
+          <div className="mt-3 sm:hidden">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-bold text-accent">📍 {selectedRegion}</p>
+              <button onClick={() => { setSelectedRegion(null); setSelectedPref(null); }} className="text-xs text-gray-500 underline cursor-pointer">解除</button>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {currentRegion.prefs.map(p => (
+                <button
+                  key={p}
+                  onClick={() => handlePrefClick(p, selectedRegion)}
+                  className={`rounded-full px-3 py-1 text-xs font-bold border transition-colors cursor-pointer ${
+                    selectedPref === p
+                      ? 'bg-accent text-white border-accent'
+                      : 'border-accent/50 text-accent hover:bg-accent/10'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 選択中表示（デスクトップ） */}
+        {(selectedRegion || selectedPref) && (
+          <div className="hidden sm:flex items-center justify-between mt-3 px-3 py-2 bg-main-light rounded-lg">
+            <p className="text-sm font-bold text-accent">
+              📍 {selectedPref ? `${selectedRegion} › ${selectedPref}` : selectedRegion}
+            </p>
+            <button onClick={() => { setSelectedRegion(null); setSelectedPref(null); }} className="text-xs text-gray-500 underline cursor-pointer">解除</button>
           </div>
         )}
 
@@ -373,7 +370,7 @@ export default function SalonListPage() {
               type="text"
               placeholder="サロン名、エリア名で探す"
               value={searchText}
-              onChange={e => { setSearchText(e.target.value); setSelectedRegion(null); }}
+              onChange={e => { setSearchText(e.target.value); setSelectedRegion(null); setSelectedPref(null); }}
               className="flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-accent"
             />
             <button className="bg-accent text-white px-4 rounded-lg font-bold text-lg cursor-pointer">
@@ -391,14 +388,16 @@ export default function SalonListPage() {
           <div className="text-center py-16">
             <p className="text-gray-400 text-4xl mb-4">✂</p>
             <p className="text-gray-500">
-              {selectedRegion
+              {selectedPref
+                ? `${selectedPref}の店舗は現在準備中です`
+                : selectedRegion
                 ? `${selectedRegion}エリアの店舗は現在準備中です`
                 : searchText
                 ? '条件に合う店舗が見つかりません'
                 : '現在ご案内できる店舗がありません'}
             </p>
             <button
-              onClick={() => { setSelectedRegion(null); setSearchText(''); }}
+              onClick={() => { setSelectedRegion(null); setSelectedPref(null); setSearchText(''); }}
               className="mt-4 text-accent text-sm underline cursor-pointer"
             >
               条件をリセット
@@ -407,7 +406,7 @@ export default function SalonListPage() {
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-gray-500">
-              {selectedRegion ? `${selectedRegion} · ` : ''}{filtered.length}件の店舗
+              {selectedPref ? `${selectedPref} · ` : selectedRegion ? `${selectedRegion} · ` : ''}{filtered.length}件の店舗
             </p>
             {filtered.map(salon => (
               <div key={salon.id} className="bg-white rounded-xl shadow overflow-hidden">
@@ -435,21 +434,16 @@ export default function SalonListPage() {
                       </div>
                     )}
                   </div>
-
                   {salon.area && (
                     <div className="mt-2">
-                      <span className="text-xs bg-main text-gray-700 px-2 py-1 rounded-full font-bold">
-                        {salon.area}
-                      </span>
+                      <span className="text-xs bg-main text-gray-700 px-2 py-1 rounded-full font-bold">{salon.area}</span>
                     </div>
                   )}
-
                   <div className="mt-2 space-y-0.5">
                     {salon.address && <p className="text-xs text-gray-500">📍 {salon.address}</p>}
                     {salon.openHours && <p className="text-xs text-gray-500">🕐 {salon.openHours}</p>}
                     {salon.closedDays && <p className="text-xs text-gray-500">🗓 定休日: {salon.closedDays}</p>}
                   </div>
-
                   <div className="flex gap-2 mt-4">
                     <button
                       onClick={() => router.push(`/salon/${salon.id}`)}
@@ -471,16 +465,10 @@ export default function SalonListPage() {
         )}
 
         <div className="mt-6 space-y-3">
-          <button
-            onClick={() => router.push('/mypage')}
-            className="w-full border border-accent text-accent rounded-xl p-4 font-bold cursor-pointer"
-          >
+          <button onClick={() => router.push('/mypage')} className="w-full border border-accent text-accent rounded-xl p-4 font-bold cursor-pointer">
             予約確認・キャンセル
           </button>
-          <button
-            onClick={() => router.push('/coupon')}
-            className="w-full bg-yellow-400 text-white rounded-xl p-4 font-bold cursor-pointer"
-          >
+          <button onClick={() => router.push('/coupon')} className="w-full bg-yellow-400 text-white rounded-xl p-4 font-bold cursor-pointer">
             クーポンを見る
           </button>
         </div>
