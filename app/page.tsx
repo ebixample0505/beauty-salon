@@ -110,12 +110,12 @@ function JapanMap({
   onRegionClick: (name: string) => void;
 }) {
   return (
+    <div style={{ width: '160px', margin: '0 auto' }}>
     <ComposableMap
       projection="geoMercator"
       projectionConfig={{ scale: 1700, center: [137, 37] }}
       width={300}
       height={320}
-      style={{ width: '100%', height: 'auto' }}
     >
       <Geographies geography={GEO_URL}>
         {({ geographies }) =>
@@ -158,6 +158,7 @@ function JapanMap({
         );
       })}
     </ComposableMap>
+    </div>
   );
 }
 
@@ -271,18 +272,18 @@ export default function SalonListPage() {
           onRegionClick={handleRegionClick}
         />
 
-        {/* 地域ボタン（モバイル用） */}
-        <div className="grid grid-cols-3 gap-1.5 mt-3 sm:hidden">
+        {/* 地域ボタン（地図の下・共通） */}
+        <div className="flex flex-wrap gap-1 mt-2">
           {REGIONS.map(r => (
             <button
               key={r.name}
               onClick={() => activeRegions.has(r.name) && handleRegionClick(r.name)}
-              className={`rounded-lg py-1.5 px-1 text-xs font-bold text-center leading-tight transition-colors ${
+              className={`rounded px-1.5 py-0.5 text-[10px] font-bold leading-tight transition-colors border ${
                 selectedRegion === r.name
-                  ? 'bg-accent text-white'
+                  ? 'bg-accent text-white border-accent'
                   : activeRegions.has(r.name)
-                  ? 'bg-accent/15 text-accent'
-                  : 'bg-gray-100 text-gray-400 cursor-default'
+                  ? 'border-accent/50 text-accent bg-accent/5 hover:bg-accent/15 cursor-pointer'
+                  : 'border-gray-200 text-gray-400 cursor-default'
               }`}
             >
               {r.name}
@@ -290,75 +291,30 @@ export default function SalonListPage() {
           ))}
         </div>
 
-        {/* 全地域×都道府県グリッド（デスクトップ） */}
-        <div className="hidden sm:block mt-4 border rounded-xl overflow-hidden">
-          {REGIONS.map(r => (
-            <div key={r.name} className="flex border-b last:border-b-0">
-              <button
-                onClick={() => activeRegions.has(r.name) && handleRegionClick(r.name)}
-                className={`w-24 shrink-0 py-3 text-xs font-bold text-center border-r transition-colors ${
-                  selectedRegion === r.name
-                    ? 'bg-accent text-white'
-                    : activeRegions.has(r.name)
-                    ? 'bg-accent/10 text-accent hover:bg-accent/20'
-                    : 'bg-gray-50 text-gray-400 cursor-default'
-                }`}
-              >
-                {r.name}
-              </button>
-              <div className="flex flex-wrap gap-1.5 p-2 items-center">
-                {r.prefs.map(p => (
-                  <button
-                    key={p}
-                    onClick={() => activeRegions.has(r.name) && handlePrefClick(p, r.name)}
-                    className={`rounded px-2.5 py-1 text-xs font-bold border transition-colors ${
-                      selectedPref === p
-                        ? 'bg-accent text-white border-accent'
-                        : activeRegions.has(r.name)
-                        ? 'border-accent/40 text-accent hover:bg-accent/10 cursor-pointer'
-                        : 'border-gray-200 text-gray-400 cursor-default'
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* 選択中エリア → 都道府県ボタン（モバイル） */}
+        {/* 都道府県ボタン（地域選択後に表示） */}
         {selectedRegion && currentRegion && (
-          <div className="mt-3 sm:hidden">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-bold text-accent">📍 {selectedRegion}</p>
-              <button onClick={() => { setSelectedRegion(null); setSelectedPref(null); }} className="text-xs text-gray-500 underline cursor-pointer">解除</button>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
+          <div className="mt-1.5">
+            <div className="flex flex-wrap gap-0.5 items-center">
               {currentRegion.prefs.map(p => (
                 <button
                   key={p}
                   onClick={() => handlePrefClick(p, selectedRegion)}
-                  className={`rounded-full px-3 py-1 text-xs font-bold border transition-colors cursor-pointer ${
+                  className={`rounded px-1.5 py-px text-[10px] font-medium border transition-colors cursor-pointer ${
                     selectedPref === p
                       ? 'bg-accent text-white border-accent'
-                      : 'border-accent/50 text-accent hover:bg-accent/10'
+                      : 'border-gray-300 text-gray-600 hover:border-accent hover:text-accent'
                   }`}
                 >
                   {p}
                 </button>
               ))}
+              <button
+                onClick={() => { setSelectedRegion(null); setSelectedPref(null); }}
+                className="ml-1 text-[9px] text-gray-400 underline cursor-pointer"
+              >
+                解除
+              </button>
             </div>
-          </div>
-        )}
-
-        {/* 選択中表示（デスクトップ） */}
-        {(selectedRegion || selectedPref) && (
-          <div className="hidden sm:flex items-center justify-between mt-3 px-3 py-2 bg-main-light rounded-lg">
-            <p className="text-sm font-bold text-accent">
-              📍 {selectedPref ? `${selectedRegion} › ${selectedPref}` : selectedRegion}
-            </p>
-            <button onClick={() => { setSelectedRegion(null); setSelectedPref(null); }} className="text-xs text-gray-500 underline cursor-pointer">解除</button>
           </div>
         )}
 
