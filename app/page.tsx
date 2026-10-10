@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import liff from '@line/liff';
-import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
+import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 
 type Salon = {
   id: string;
@@ -89,6 +89,19 @@ const REGIONS: RegionInfo[] = [
 
 const GEO_URL = 'https://raw.githubusercontent.com/dataofjapan/land/master/japan.topojson';
 
+// 地図画像上の各地域ボタンの絶対座標（top/left は親コンテナに対する %）
+const REGION_POSITIONS: Record<string, { top: string; left: string }> = {
+  '北海道':    { top: '10%', left: '74%' },
+  '東北':      { top: '32%', left: '67%' },
+  '関東':      { top: '49%', left: '64%' },
+  '北信越':    { top: '43%', left: '47%' },
+  '東海':      { top: '55%', left: '51%' },
+  '関西':      { top: '58%', left: '36%' },
+  '中国':      { top: '56%', left: '22%' },
+  '四国':      { top: '65%', left: '29%' },
+  '九州・沖縄': { top: '64%', left: '11%' },
+};
+
 const PREF_TO_REGION: Record<string, string> = {
   '北海道': '北海道',
   '青森県': '東北', '岩手県': '東北', '宮城県': '東北', '秋田県': '東北', '山形県': '東北', '福島県': '東北',
@@ -110,54 +123,67 @@ function JapanMap({
   onRegionClick: (name: string) => void;
 }) {
   return (
-    <div style={{ width: '160px', margin: '0 auto' }}>
-    <ComposableMap
-      projection="geoMercator"
-      projectionConfig={{ scale: 1700, center: [137, 37] }}
-      width={300}
-      height={320}
-    >
-      <Geographies geography={GEO_URL}>
-        {({ geographies }) =>
-          geographies.map(geo => {
-            const prefName: string = (geo.properties?.nam_ja as string) || '';
-            const regionName = PREF_TO_REGION[prefName];
-            const isSelected = selected === regionName;
-            const hasData = regionName ? active.has(regionName) : false;
-            return (
-              <Geography
-                key={geo.rsmKey}
-                geography={geo}
-                fill={isSelected ? '#00838f' : hasData ? '#80cbc4' : '#bdbdbd'}
-                stroke="#fff"
-                strokeWidth={0.5}
-                onClick={() => regionName && hasData && onRegionClick(regionName)}
-              />
-            );
-          })
-        }
-      </Geographies>
+    <div style={{ width: '160px', margin: '0 auto', position: 'relative' }}>
+      {/* 地図背景（クリック不可・視覚のみ） */}
+      <ComposableMap
+        projection="geoMercator"
+        projectionConfig={{ scale: 1700, center: [137, 37] }}
+        width={300}
+        height={320}
+        style={{ width: '100%', height: 'auto', display: 'block' }}
+      >
+        <Geographies geography={GEO_URL}>
+          {({ geographies }) =>
+            geographies.map(geo => {
+              const prefName: string = (geo.properties?.nam_ja as string) || '';
+              const regionName = PREF_TO_REGION[prefName];
+              const isSelected = selected === regionName;
+              const hasData = regionName ? active.has(regionName) : false;
+              return (
+                <Geography
+                  key={geo.rsmKey}
+                  geography={geo}
+                  fill={isSelected ? '#00838f' : hasData ? '#80cbc4' : '#bdbdbd'}
+                  stroke="#fff"
+                  strokeWidth={0.5}
+                />
+              );
+            })
+          }
+        </Geographies>
+      </ComposableMap>
+
+      {/* 絶対配置エリアボタン（地図の上に重ねる） */}
       {REGIONS.map(r => {
+        const pos = REGION_POSITIONS[r.name];
+        if (!pos) return null;
         const isSelected = selected === r.name;
         const hasData = active.has(r.name);
         return (
-          <Marker key={r.name} coordinates={[r.lng, r.lat]}>
-            <text
-              textAnchor="middle"
-              style={{
-                fontSize: r.name === '九州・沖縄' ? '5.5px' : '7px',
-                fontWeight: 'bold',
-                fill: isSelected ? '#fff' : hasData ? '#b71c1c' : '#757575',
-                pointerEvents: 'none',
-                userSelect: 'none',
-              }}
-            >
-              {r.name}
-            </text>
-          </Marker>
+          <button
+            key={r.name}
+            onClick={() => hasData && onRegionClick(r.name)}
+            style={{
+              position: 'absolute',
+              top: pos.top,
+              left: pos.left,
+              transform: 'translate(-50%, -50%)',
+              fontSize: '5.5px',
+              fontWeight: 'bold',
+              lineHeight: 1.2,
+              whiteSpace: 'nowrap',
+              padding: '1px 2px',
+              borderRadius: '2px',
+              border: 'none',
+              cursor: hasData ? 'pointer' : 'default',
+              backgroundColor: isSelected ? '#00838f' : hasData ? 'rgba(255,255,255,0.85)' : 'transparent',
+              color: isSelected ? '#fff' : hasData ? '#b71c1c' : '#9e9e9e',
+            }}
+          >
+            {r.name}
+          </button>
         );
       })}
-    </ComposableMap>
     </div>
   );
 }
